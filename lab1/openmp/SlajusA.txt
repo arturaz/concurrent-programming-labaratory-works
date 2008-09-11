@@ -1,0 +1,31 @@
+8
+Tirlim pum pum                187562    1991
+Raudonkepuraite               4000      1960
+Spalvotasis drugelis Maksas   20        2008
+Astunkojis Klemas ir draugai  45000     1996
+BMW - draugyste ir meile      12        2002
+As ir Stalinas - istorija     40000     1990
+Kodel as stojau i KTU?        15        2008
+Matematika ir trigonometrija  10000     1999
+
+4
+Kvarksiukas angliukas         3000      1989
+Tankai ir pizamos             40000     1993
+Viskas - grebliavimo technika 300       2002
+Raketos ir audines - panasumai3000      2008
+
+2
+1999 10
+1998 5
+
+3
+2002 1
+2003 5
+2004 8
+
+4
+1989 40
+2008 15
+1993 13
+2004 15
+
