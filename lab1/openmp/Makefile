@@ -1,5 +1,6 @@
 build:
-	g++ -o app -fopenmp SlajusA_L1b.cc
+	mkdir -p dist
+	g++ -o dist/app -fopenmp SlajusA_L1b.cc
 
 clean:
-	rm -fv *.o app
+	rm -rfv dist
