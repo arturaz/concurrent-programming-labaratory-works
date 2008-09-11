@@ -111,7 +111,7 @@ int main() {
     cout << "Entering parallel...\n";
     #pragma omp parallel num_threads(TOTAL_THREADS)
     {
-        #pragma omp sections
+        #pragma omp sections nowait
         {
             #pragma omp section 
                 print_books(book_lists[0]);
