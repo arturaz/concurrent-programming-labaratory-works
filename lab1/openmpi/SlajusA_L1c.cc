@@ -4,7 +4,7 @@
 
 #include <iostream>
 #include <fstream>
-#include <omp.h>
+#include <mpi.h>
 using namespace std;
 
 struct book {
@@ -27,6 +27,20 @@ struct filter_list {
     filter *data;
     unsigned int length;
 };
+
+/**
+ * Get MPI rank.
+ */
+int get_rank() {
+  if (MPI::Is_initialized()) {
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    return rank;
+  } 
+  else {
+    return 0;
+  }
+}
 
 /**
  * Read books from ifstream into list.
@@ -68,7 +82,7 @@ void read_filters(filter_list &list, ifstream *in) {
 void print_books(book_list &list) {
     printf("%3s | %-2s | %-30s | %-10s | %-4s\n", "TID", "Nr", "Title", "Printing", "Year");
     for (int i = 0; i < list.length; i++) {
-        printf("%-3d | %-2d | %-30s | %-10d | %-4d\n", omp_get_thread_num(), i + 1,
+        printf("%-3d | %-2d | %-30s | %-10d | %-4d\n", get_rank(), i + 1,
                 list.data[i].title,
                 list.data[i].printing,
                 list.data[i].year
@@ -80,7 +94,7 @@ void print_books(book_list &list) {
 void print_filters(filter_list &list) {
     printf("%-2s | %-4s | %-s\n", "TID", "Nr", "Year", "Count");
     for (int i = 0; i < list.length; i++) {
-        printf("%-3d | %-2d | %-4d | %-d\n", omp_get_thread_num(), i + 1,
+        printf("%-3d | %-2d | %-4d | %-d\n", get_rank(), i + 1,
                 list.data[i].year,
                 list.data[i].count
                 );
@@ -88,7 +102,7 @@ void print_filters(filter_list &list) {
     cout << "\n";
 }
 
-int main() {
+int main(int argc, char *argv[]) {
     book_list book_lists[N];
     filter_list filter_lists[M];
 
@@ -109,27 +123,26 @@ int main() {
     delete in;
 
     cout << "Entering parallel...\n";
-    #pragma omp parallel num_threads(TOTAL_THREADS)
-    {
-        #pragma omp sections nowait
-        {
-            #pragma omp section 
-                print_books(book_lists[0]);
 
-            #pragma omp section 
-                print_books(book_lists[1]);
-
-            #pragma omp section 
-                print_filters(filter_lists[0]);
-
-            #pragma omp section 
-                print_filters(filter_lists[1]);
-
-            #pragma omp section 
-                print_filters(filter_lists[2]);
-        }
-    }  /* end of parallel section */
-
+    MPI::Init();
+    switch(get_rank()) {
+      case 0:
+        print_books(book_lists[0]);
+        break;
+      case 1:
+        print_books(book_lists[1]);
+        break;
+      case 2:
+        print_filters(filter_lists[0]);
+        break;
+      case 3:
+        print_filters(filter_lists[1]);
+        break;
+      case 4:
+        print_filters(filter_lists[2]);
+        break;
+    }
+    MPI::Finalize();
 
     return 0;
 }
