@@ -3,6 +3,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -53,10 +54,10 @@ public class SlajusA_L1a {
          */
         public void printData() {
             for (BookList l: bookLists) {
-                System.out.println(l.toString());
+                l.writeDataTo(System.out);
             }
             for (FilterList l: filterLists) {
-                System.out.println(l.toString());
+                l.writeDataTo(System.out);
             }
         }
         
@@ -101,10 +102,6 @@ public class SlajusA_L1a {
         public RecordList(BufferedReader in) throws IOException {
             readFromReader(in);
         }
-
-        public void run() {
-            System.out.println(toString());
-        }
         
         /**
          * Read data from BufferedReader.
@@ -132,16 +129,15 @@ public class SlajusA_L1a {
         /**
          * Prints data out in a nice table.
          */
-        public String toString(Object[] data) {
+        public void writeDataTo(PrintStream out, Object[] data) {
             if (data == null) {
-                return "No data.";
+                out.println("No data.");
             }
             else {
-                String str = getHeader() + "\n";
+                out.println(getHeader());
                 for (Object o: data) {
-                    str += o.toString() + "\n";
+                    out.println(o.toString());
                 }
-                return str;
             }
         }
         
@@ -244,9 +240,12 @@ public class SlajusA_L1a {
                     "Year");
         }
 
-        @Override
-        public String toString() {
-            return super.toString(data);
+        public void writeDataTo(PrintStream out) {
+            super.writeDataTo(out, data);
+        }        
+
+        public void run() {
+            writeDataTo(System.out);
         }
     }
     
@@ -316,9 +315,12 @@ public class SlajusA_L1a {
             return String.format(format, "Thread", "Nr", "Year", "Count");
         }
         
-        @Override
-        public String toString() {
-            return super.toString(data);
+        public void writeDataTo(PrintStream out) {
+            super.writeDataTo(out, data);
+        }
+
+        public void run() {
+            writeDataTo(System.out);
         }
     }
     
