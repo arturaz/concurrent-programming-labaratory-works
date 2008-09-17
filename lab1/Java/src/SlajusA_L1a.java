@@ -40,10 +40,10 @@ public class SlajusA_L1a {
             
             // Create appenders
             for (int i = 0; i < bookThreadCount; i++) {
-                bookLists[i] = new BookList(in);
+                bookLists[i] = new BookList(in, i);
             }
             for (int i = 0; i < filterThreadCount; i++) {
-                filterLists[i] = new FilterList(in);
+                filterLists[i] = new FilterList(in, i);
             }
             
             in.close();
@@ -99,8 +99,15 @@ public class SlajusA_L1a {
     }
     
     public abstract class RecordList implements Runnable {
-        public RecordList(BufferedReader in) throws IOException {
+        protected int number;
+        
+        public RecordList(BufferedReader in, int number) throws IOException {
             readFromReader(in);
+            this.number = number;
+        }
+
+        public int getNumber() {
+            return number;
         }
         
         /**
@@ -220,8 +227,8 @@ public class SlajusA_L1a {
         
         protected Book[] data;
 
-        public BookList(BufferedReader in) throws IOException {
-            super(in);
+        public BookList(BufferedReader in, int number) throws IOException {
+            super(in, number);
         }
         
         @Override
@@ -245,6 +252,7 @@ public class SlajusA_L1a {
         }        
 
         public void run() {
+            Thread.currentThread().setName("Papildyti" + getNumber());
             writeDataTo(System.out);
         }
     }
@@ -296,8 +304,8 @@ public class SlajusA_L1a {
          */
         public String format = "%-10s | %2s | %4s | %s";
         
-        public FilterList(BufferedReader in) throws IOException {
-            super(in);
+        public FilterList(BufferedReader in, int number) throws IOException {
+            super(in, number);
         }
         
         @Override
@@ -320,6 +328,7 @@ public class SlajusA_L1a {
         }
 
         public void run() {
+            Thread.currentThread().setName("Naudoti" + getNumber());
             writeDataTo(System.out);
         }
     }
