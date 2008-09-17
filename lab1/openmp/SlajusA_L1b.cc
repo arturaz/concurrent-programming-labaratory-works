@@ -97,12 +97,12 @@ int main() {
 
     for (int i = 0; i < N; i++) {
         read_books(book_lists[i], in);
-        print_books(book_lists[i]);
+        print_books(book_lists[i], "p");
     }
 
     for (int i = 0; i < M; i++) {
         read_filters(filter_lists[i], in);
-        print_filters(filter_lists[i]);
+        print_filters(filter_lists[i], "p");
     }
 
     in->close();
@@ -111,22 +111,22 @@ int main() {
     cout << "Entering parallel...\n";
     #pragma omp parallel num_threads(TOTAL_THREADS)
     {
-        #pragma omp sections
-        {
-            #pragma omp section 
-                print_books(book_lists[0]);
-
-            #pragma omp section 
-                print_books(book_lists[1]);
-
-            #pragma omp section 
-                print_filters(filter_lists[0]);
-
-            #pragma omp section 
-                print_filters(filter_lists[1]);
-
-            #pragma omp section 
-                print_filters(filter_lists[2]);
+        switch (omp_get_thread_num()) {
+            case 0:
+                print_books(book_lists[0], "0");
+                break;
+            case 1:
+                print_books(book_lists[1], "1");
+                break;
+            case 2:
+                print_filters(filter_lists[0], "0");
+                break;
+            case 3:
+                print_filters(filter_lists[1], "1");
+                break;
+            case 4:
+                print_filters(filter_lists[2], "2");
+                break;
         }
     }  /* end of parallel section */
 
