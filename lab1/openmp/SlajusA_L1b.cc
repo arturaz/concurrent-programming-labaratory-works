@@ -1,6 +1,6 @@
 #define N 2
 #define M 3
-#define TOTAL_THREADS 5
+#define TOTAL_THREADS N+M
 
 #include <iostream>
 #include <fstream>
