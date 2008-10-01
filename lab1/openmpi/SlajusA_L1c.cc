@@ -42,6 +42,13 @@ int get_rank() {
   }
 }
 
+char* get_cpu() {
+  int namelen;
+  char processor_name[MPI_MAX_PROCESSOR_NAME];
+  MPI_Get_processor_name(processor_name, &namelen);
+  return processor_name;
+}
+
 /**
  * Read books from ifstream into list.
  */
@@ -79,10 +86,14 @@ void read_filters(filter_list &list, ifstream *in) {
     in->get();
 }
 
-void print_books(book_list &list) {
-    printf("%3s | %-2s | %-30s | %-10s | %-4s\n", "TID", "Nr", "Title", "Printing", "Year");
+void print_books(book_list &list, int num) {
+    printf("%-15s | %-11s | %-2s | %-30s | %-10s | %-4s\n", "CPU", "TID", "Nr", 
+        "Title", "Printing", "Year");
     for (int i = 0; i < list.length; i++) {
-        printf("%-3d | %-2d | %-30s | %-10d | %-4d\n", get_rank(), i + 1,
+        printf("%-15s | Papildyti%-2d | %-2d | %-30s | %-10d | %-4d\n", 
+                get_cpu(), 
+                num,
+                i + 1,
                 list.data[i].title,
                 list.data[i].printing,
                 list.data[i].year
@@ -91,10 +102,12 @@ void print_books(book_list &list) {
     cout << "\n";
 }
 
-void print_filters(filter_list &list) {
-    printf("%-2s | %-4s | %-s\n", "TID", "Nr", "Year", "Count");
+void print_filters(filter_list &list, int num) {
+    printf("%-15s | %-11s | %-2s | %-4s | %-s\n", "CPU", "TID", "Nr", "Year", "Count");
     for (int i = 0; i < list.length; i++) {
-        printf("%-3d | %-2d | %-4d | %-d\n", get_rank(), i + 1,
+        printf("%-15s | Naudoti%-4d | %-2d | %-4d | %-d\n", get_cpu(), 
+                num,
+                i + 1,
                 list.data[i].year,
                 list.data[i].count
                 );
@@ -103,6 +116,8 @@ void print_filters(filter_list &list) {
 }
 
 int main(int argc, char *argv[]) {
+    MPI::Init();
+
     book_list book_lists[N];
     filter_list filter_lists[M];
 
@@ -111,35 +126,34 @@ int main(int argc, char *argv[]) {
 
     for (int i = 0; i < N; i++) {
         read_books(book_lists[i], in);
-        print_books(book_lists[i]);
+        //if (get_rank() == 0)
+        //    print_books(book_lists[i]);
     }
 
     for (int i = 0; i < M; i++) {
         read_filters(filter_lists[i], in);
-        print_filters(filter_lists[i]);
+        //if (get_rank() == 0)
+        //    print_filters(filter_lists[i]);
     }
 
     in->close();
     delete in;
 
-    cout << "Entering parallel...\n";
-
-    MPI::Init();
     switch(get_rank()) {
       case 0:
-        print_books(book_lists[0]);
+        print_books(book_lists[0], 1);
         break;
       case 1:
-        print_books(book_lists[1]);
+        print_books(book_lists[1], 2);
         break;
       case 2:
-        print_filters(filter_lists[0]);
+        print_filters(filter_lists[0], 1);
         break;
       case 3:
-        print_filters(filter_lists[1]);
+        print_filters(filter_lists[1], 2);
         break;
       case 4:
-        print_filters(filter_lists[2]);
+        print_filters(filter_lists[2], 3);
         break;
     }
     MPI::Finalize();

@@ -1,6 +1,6 @@
 #define N 2
 #define M 3
-#define TOTAL_THREADS 5
+#define TOTAL_THREADS N+M
 
 #include <iostream>
 #include <fstream>
@@ -65,25 +65,35 @@ void read_filters(filter_list &list, ifstream *in) {
     in->get();
 }
 
-void print_books(book_list &list) {
-    printf("%3s | %-2s | %-30s | %-10s | %-4s\n", "TID", "Nr", "Title", "Printing", "Year");
+void print_books(book_list &list, string desc) {
+    printf("%-10s | %-2s | %-30s | %-10s | %-4s\n", "TID", "Nr", "Title", "Printing", "Year");
     for (int i = 0; i < list.length; i++) {
-        printf("%-3d | %-2d | %-30s | %-10d | %-4d\n", omp_get_thread_num(), i + 1,
+        string name("Papildyti");
+        name += desc;
+        printf("%-10s | %-2d | %-30s | %-10d | %-4d\n", name.c_str(), i + 1,
                 list.data[i].title,
                 list.data[i].printing,
                 list.data[i].year
                 );
+        int amax = rand() * 1000;
+        for (int a = 0; a < amax; a++)
+            amax ^ a;
     }
     cout << "\n";
 }
 
-void print_filters(filter_list &list) {
-    printf("%-2s | %-4s | %-s\n", "TID", "Nr", "Year", "Count");
+void print_filters(filter_list &list, string desc) {
+    printf("%-10s | %-4s | %-s\n", "TID", "Nr", "Year", "Count");
     for (int i = 0; i < list.length; i++) {
-        printf("%-3d | %-2d | %-4d | %-d\n", omp_get_thread_num(), i + 1,
+        string name("Naudoti");
+        name += desc;
+        printf("%-10s | %-2d | %-4d | %-d\n", name.c_str(), i + 1,
                 list.data[i].year,
                 list.data[i].count
                 );
+        int amax = rand() * 1000;
+        for (int a = 0; a < amax; a++)
+            amax ^ a;
     }
     cout << "\n";
 }
@@ -97,12 +107,12 @@ int main() {
 
     for (int i = 0; i < N; i++) {
         read_books(book_lists[i], in);
-        print_books(book_lists[i]);
+        print_books(book_lists[i], "p");
     }
 
     for (int i = 0; i < M; i++) {
         read_filters(filter_lists[i], in);
-        print_filters(filter_lists[i]);
+        print_filters(filter_lists[i], "p");
     }
 
     in->close();
@@ -111,22 +121,22 @@ int main() {
     cout << "Entering parallel...\n";
     #pragma omp parallel num_threads(TOTAL_THREADS)
     {
-        #pragma omp sections
-        {
-            #pragma omp section 
-                print_books(book_lists[0]);
-
-            #pragma omp section 
-                print_books(book_lists[1]);
-
-            #pragma omp section 
-                print_filters(filter_lists[0]);
-
-            #pragma omp section 
-                print_filters(filter_lists[1]);
-
-            #pragma omp section 
-                print_filters(filter_lists[2]);
+        switch (omp_get_thread_num()) {
+            case 0:
+                print_books(book_lists[0], "0");
+                break;
+            case 1:
+                print_books(book_lists[1], "1");
+                break;
+            case 2:
+                print_filters(filter_lists[0], "0");
+                break;
+            case 3:
+                print_filters(filter_lists[1], "1");
+                break;
+            case 4:
+                print_filters(filter_lists[2], "2");
+                break;
         }
     }  /* end of parallel section */
 
