@@ -43,10 +43,15 @@ int get_rank() {
 }
 
 char* get_cpu() {
-  int namelen;
-  char processor_name[MPI_MAX_PROCESSOR_NAME];
-  MPI_Get_processor_name(processor_name, &namelen);
-  return processor_name;
+  if (MPI::Is_initialized()) {
+    int namelen;
+    char processor_name[MPI_MAX_PROCESSOR_NAME];
+    MPI_Get_processor_name(processor_name, &namelen);
+    return processor_name;
+  }
+  else {
+    return "main";
+  }
 }
 
 /**
@@ -116,7 +121,6 @@ void print_filters(filter_list &list, int num) {
 }
 
 int main(int argc, char *argv[]) {
-    MPI::Init();
 
     book_list book_lists[N];
     filter_list filter_lists[M];
@@ -127,17 +131,19 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < N; i++) {
         read_books(book_lists[i], in);
         //if (get_rank() == 0)
-        //    print_books(book_lists[i]);
+            print_books(book_lists[i], 0);
     }
 
     for (int i = 0; i < M; i++) {
         read_filters(filter_lists[i], in);
         //if (get_rank() == 0)
-        //    print_filters(filter_lists[i]);
+            print_filters(filter_lists[i], 0);
     }
 
     in->close();
     delete in;
+
+    MPI::Init();
 
     switch(get_rank()) {
       case 0:
