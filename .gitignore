@@ -1,5 +1,7 @@
 *.class
 nbproject
+manifest.mf
+build.xml
 *.o
 *.swp
 dist
