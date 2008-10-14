@@ -198,10 +198,11 @@ abstract class RecordList implements Runnable {
     public abstract String getHeader();
 }
 
+
 /**
  * Class for [title, printing, year] records.
  */
-class Book extends Record {
+class Book extends Record implements Comparable<Book> {
     /**
      * Format of output line.
      */
@@ -254,8 +255,12 @@ class Book extends Record {
     public String toString() {
         return String.format(format, getId(), title, printing, year, count);
     }
-}
 
+    @Override
+    public int compareTo(Book book) {
+        return getTitle().compareTo(book.getTitle());
+    }
+}
 class Producer extends RecordList {        
     /**
      * Format of the title
@@ -442,7 +447,7 @@ class OrderedArray {
             book.count += 1;
         }
 
-        //Collections.sort(data);
+        Collections.sort(data);
         lock.release();
         App.debug("Released lock.");
         return book;
