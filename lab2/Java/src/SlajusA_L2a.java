@@ -61,8 +61,26 @@ class App {
 
     public App(String inputFilename) throws IOException {
         readData(inputFilename);
+        printData();
+        
         startThreads();
+        while (Thread.activeCount() != 1) {}
+        
+        System.out.println("Bendras masyvas:");
+        data.writeDataTo(System.out);
         return;
+    }
+
+    /**
+     * Print out all data in nice tables.
+     */
+    public void printData() {
+        for (Producer l: producers) {
+            l.writeDataTo(System.out);
+        }
+        for (Consumer l: consumers) {
+            l.writeDataTo(System.out);
+        }
     }
     
     public static double getPassedTime() {
@@ -70,10 +88,10 @@ class App {
     }
     
     public static void debug(String s) {
-        System.out.println(String.format("%4.0fms [ %-10s ] -- %s",
-                getPassedTime(),
-                Thread.currentThread().getName(),
-                s));
+//        System.out.println(String.format("%4.0fms [ %-10s ] -- %s",
+//                getPassedTime(),
+//                Thread.currentThread().getName(),
+//                s));
     }
 
     /**
@@ -343,6 +361,14 @@ class Filter extends Record {
     public String toString() {
         return String.format(format, getId(), year, count);
     }
+    
+    public void exausted() {
+        count = 0;
+    }
+    
+    public boolean isExausted() {
+        return count == 0;
+    }
 }
 
 class Consumer extends RecordList {
@@ -351,7 +377,7 @@ class Consumer extends RecordList {
     /**
      * Format of the title
      */
-    public String format = "%-10s | %2s | %4s | %s";
+    public String format = "%2s | %4s | %s";
 
     public Consumer(BufferedReader in, int number) throws IOException {
         super(in, number);
@@ -369,7 +395,7 @@ class Consumer extends RecordList {
 
     @Override
     public String getHeader() {
-        return String.format(format, "Thread", "Nr", "Year", "Count");
+        return String.format(format, "Nr", "Year", "Count");
     }
 
     public void writeDataTo(PrintStream out) {
@@ -379,17 +405,25 @@ class Consumer extends RecordList {
     public void run() {
         Thread.currentThread().setName("Naudoti" + getNumber());
         try {
-            while (! App.data.consumerCanFinish()) {
+            while (true) {
                 for (Filter filter: data) {
-                    App.debug("[trying to consume] " 
-                            + filter.toString());
-                    Book book = App.data.consume(filter);
-                    App.debug("[GOT] " + book);
-                    if (book != null) {
-                        App.debug("[Consumed] " 
+                    if (! filter.isExausted()) {
+                        if (App.data.consumerCanFinish())
+                            return;
+
+                        App.debug("[trying to consume] " 
                                 + filter.toString());
+                        Book book = App.data.consume(filter);
+                        App.debug("[GOT] " + book);
+                        if (book != null) {
+                            App.debug("[Consumed] " 
+                                    + filter.toString());
+                        }
                     }
                 }
+                
+                if (App.data.getProducersLeft() == 0)
+                    return;
             }
         }
         catch (InterruptedException e) {}
@@ -402,6 +436,8 @@ class Consumer extends RecordList {
 class OrderedArray {
     private ArrayList<Book> data = new ArrayList<Book>();
     public Semaphore lock = new Semaphore(1, true);
+    public Semaphore producersLock = new Semaphore(1, true);
+    public Semaphore canRead = new Semaphore(0, true);
     private int producersWorking;
 
     public OrderedArray(int producersWorking) {
@@ -421,12 +457,6 @@ class OrderedArray {
         }
 
         return null;
-    }
-    
-    public void producerFinished() throws InterruptedException {
-        lock.acquire();
-        producersWorking -= 1;
-        lock.release();
     }
 
     /**
@@ -449,6 +479,7 @@ class OrderedArray {
 
         Collections.sort(data);
         lock.release();
+        canRead.release();
         App.debug("Released lock.");
         return book;
     }
@@ -461,12 +492,27 @@ class OrderedArray {
         data.remove(book);
     }
     
+    public int getProducersLeft() throws InterruptedException {
+        producersLock.acquire();
+        int producers = producersWorking;
+        producersLock.release();
+        return producers;
+    }
+    
+    public void producerFinished() throws InterruptedException {
+        producersLock.acquire();
+        producersWorking -= 1;
+        producersLock.release();
+    }
+    
     public boolean consumerCanFinish() throws InterruptedException {
+        producersLock.acquire();
         lock.acquire();
         App.debug("can finish called, producers working: " 
                 + producersWorking + ", data size: " + data.size());
         boolean canFinish = (producersWorking == 0) && data.size() == 0;
         lock.release();
+        producersLock.release();
         return canFinish;
     }
 
@@ -477,6 +523,7 @@ class OrderedArray {
      * @return
      */
     public Book consume(Filter filter) throws InterruptedException {
+        canRead.acquire();
         lock.acquire();
         int year = filter.getYear();
         int count = filter.getCount();
@@ -484,6 +531,7 @@ class OrderedArray {
         Book book = findByYear(year);
         if (book != null) {
             if (book.count >= count) {
+                filter.exausted();
                 book.count -= count;
                 if (book.count == 0) {
                     delete(book);
@@ -495,8 +543,26 @@ class OrderedArray {
                 book = null;
             }
         }
+        
+        if (book == null)
+            canRead.release();
+        
         lock.release();
         return book;
+    }
+    
+    /**
+     * Prints data out in a nice table.
+     */
+    public void writeDataTo(PrintStream out) {
+        if (data == null || data.size() == 0) {
+            out.println("No data.");
+        }
+        else {
+            for (Object o: data) {
+                out.println(o.toString());
+            }
+        }
     }
 }
     
