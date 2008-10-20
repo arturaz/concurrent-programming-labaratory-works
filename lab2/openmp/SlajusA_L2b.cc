@@ -129,7 +129,7 @@ public:
   }
 
   void run() {
-    //cout << "yay\n";
+    cout << "yay\n";
     //cout << get_name();
   }
 }; // }}}
@@ -254,14 +254,13 @@ int main(int argc, char *argv[]) {
   producers[0].run();
   cout << "still working \n" << flush;
 
-  #pragma omp parallel num_threads(TOTAL_THREADS) private(producers) shared(storage)
+  #pragma omp parallel num_threads(TOTAL_THREADS)
   {
-    cout << "switch\n";
+    //producers[0].run();
     switch (omp_get_thread_num()) {
       case 0:
         cout << "case0\n";
         // Vien del to, kad shita iskvieciu, programa segfaultinas :(
-        producers[0].run();
         break;
       case 1:
         cout << "case1\n";
