@@ -228,7 +228,7 @@ void print_filters(filter_list &list, string desc) { // {{{
 int main(int argc, char *argv[]) {
   producer producers[N];
   consumer consumers[M];
-  storage storage;
+  storage data;
 
   ifstream *in = new ifstream;
   if (argc == 2) {
@@ -256,7 +256,7 @@ int main(int argc, char *argv[]) {
 
   #pragma omp parallel num_threads(TOTAL_THREADS)
   {
-    //producers[0].run();
+    producers[0].run();
     switch (omp_get_thread_num()) {
       case 0:
         cout << "case0\n";
