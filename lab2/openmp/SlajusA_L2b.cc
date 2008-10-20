@@ -192,7 +192,7 @@ public:
   }
 }; // }}}
 
-void print_books(book_list &list, string desc) {
+void print_books(book_list &list, string desc) { // {{{
   printf("%-10s | %-2s | %-30s | %-10s | %-4s\n", "TID", "Nr", "Title", "Printing", "Year");
   for (int i = 0; i < list.length; i++) {
     string name("Papildyti");
@@ -207,9 +207,9 @@ void print_books(book_list &list, string desc) {
       amax ^ a;
   }
   cout << "\n";
-}
+} // }}}
 
-void print_filters(filter_list &list, string desc) {
+void print_filters(filter_list &list, string desc) { // {{{
   printf("%-10s | %-4s | %-s\n", "TID", "Nr", "Year", "Count");
   for (int i = 0; i < list.length; i++) {
     string name("Naudoti");
@@ -223,7 +223,7 @@ void print_filters(filter_list &list, string desc) {
       amax ^ a;
   }
   cout << "\n";
-}
+} // }}}
 
 int main(int argc, char *argv[]) {
   producer producers[N];
@@ -251,7 +251,10 @@ int main(int argc, char *argv[]) {
   in->close();
   delete in;
 
-  #pragma omp parallel num_threads(TOTAL_THREADS)
+  producers[0].run();
+  cout << "still working \n" << flush;
+
+  #pragma omp parallel num_threads(TOTAL_THREADS) private(producers) shared(storage)
   {
     cout << "switch\n";
     switch (omp_get_thread_num()) {
