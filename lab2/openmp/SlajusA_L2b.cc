@@ -183,12 +183,8 @@ private:
   book_list books;
   omp_lock_t* lock;
 public:
-  storage() {
-    omp_init_lock(lock);
-  }
-
-  ~storage() {
-    omp_destroy_lock(lock);
+  storage(omp_lock_t* lock) {
+    this->lock = lock;
   }
 }; // }}}
 
@@ -228,7 +224,9 @@ void print_filters(filter_list &list, string desc) { // {{{
 int main(int argc, char *argv[]) {
   producer producers[N];
   consumer consumers[M];
-  storage data;
+  omp_lock_t* lock;
+  omp_init_lock(lock);
+  storage *data = new storage(lock);
 
   ifstream *in = new ifstream;
   if (argc == 2) {
@@ -280,6 +278,8 @@ int main(int argc, char *argv[]) {
         break;
     }
   }
+  omp_destroy_lock(lock);
+  delete data;
 
   return 0;
 }
