@@ -1,8 +1,8 @@
 #define N 2
 #define M 3
 #define TOTAL_THREADS N+M
-#define DEBUG_ON false
-#define DEBUG_STREAM cerr
+#define DEBUG_ON true
+#define DEBUG_STREAM cout
 #define debug if (DEBUG_ON) DEBUG_STREAM
 #define info if (DEBUG_ON) print_info(); if (DEBUG_ON) DEBUG_STREAM
 
@@ -13,6 +13,41 @@
 #include <stdio.h>
 #include <stdlib.h>
 using namespace std;
+
+/**
+ * Simple wrapper for OMP lock.
+ */
+class omp_lock { // {{{
+private:
+  omp_lock_t* l;
+public:
+  omp_lock() {
+    l = new omp_lock_t;
+    omp_init_lock(l);
+  }
+
+  ~omp_lock() {
+    if (l != NULL) {
+      omp_destroy_lock(l);
+      delete l;
+      l = NULL;
+    }
+  }
+
+  /**
+   * Acquire the lock. Wraps omp_set_lock.
+   */
+  void acquire() {
+    omp_set_lock(l);
+  }
+
+  /**
+   * Release the lock. Wraps omp_unset_lock.
+   */
+  void release() {
+    omp_unset_lock(l);
+  }
+}; // }}}
 
 class book { // {{{
 public:
@@ -45,6 +80,7 @@ public:
 class filter { // {{{
 private:
   unsigned int consumed;
+  //omp_lock lock;
 public:
   unsigned int year;
   unsigned int count;
@@ -64,56 +100,32 @@ public:
    * How much does this filter want to consume?
    */
   unsigned int get_wants_to_consume() {
-    return count - consumed;
+    //lock.acquire();
+    unsigned int quantity = count - consumed;
+    //lock.release();
+    return quantity;
   }
 
   /**
    * Record that we have consumed count i.
    */
   void consume(unsigned int i) {
+    //lock.acquire();
     consumed += i;
     // Safety trigger.
     if (consumed > count)
       consumed = count;
+    //lock.release();
   }
 
   /**
    * Have we consumed everything we need?
    */
   bool is_exausted() {
-    return count == consumed;
-  }
-}; // }}}
-
-/**
- * Simple wrapper for OMP lock.
- */
-class omp_lock { // {{{
-private:
-  omp_lock_t* l;
-public:
-  omp_lock() {
-    l = new omp_lock_t;
-    omp_init_lock(l);
-  }
-
-  ~omp_lock() {
-    omp_destroy_lock(l);
-    delete l;
-  }
-
-  /**
-   * Acquire the lock. Wraps omp_set_lock.
-   */
-  void acquire() {
-    omp_set_lock(l);
-  }
-
-  /**
-   * Release the lock. Wraps omp_unset_lock.
-   */
-  void release() {
-    omp_unset_lock(l);
+    //lock.acquire();
+    bool exausted = count == consumed;
+    //lock.release();
+    return exausted;
   }
 }; // }}}
 
@@ -207,6 +219,8 @@ public:
         debug << "Deleting " << b->title << endl;
         remove(b);
       }
+
+      f.consume(consumed);
     }
     lock.release();
     return consumed;
@@ -395,9 +409,8 @@ public:
             return;
 
           unsigned int consumed = data->consume(*it);
-          info << "Consuming " << consumed << " from " << it->count << " for filter " 
+          info << "consuming: wants " << consumed << ", available " << it->count << " for filter " 
             << it->year << "\n";
-          it->consume(consumed);
         }
       }
 

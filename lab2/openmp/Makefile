@@ -1,13 +1,13 @@
-run: run1 run2 run3
+run: nieko viska kazka
 
-run1: build
-	dist/app SlajusA_1.txt
+nieko: build
+	dist/app SlajusA_nieko.txt
 
-run2: build
-	dist/app SlajusA_2.txt
+viska: build
+	dist/app SlajusA_viska.txt
 
-run3: build
-	dist/app SlajusA_3.txt
+kazka: build
+	dist/app SlajusA_kazka.txt
 
 build:
 	mkdir -p dist

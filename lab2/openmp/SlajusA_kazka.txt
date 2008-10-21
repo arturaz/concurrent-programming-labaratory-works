@@ -1,10 +1,10 @@
-0
-
-12
+4
 Tirlim pum pum                187562    1991
 Raudonkepuraite               4000      1991
 Spalvotasis drugelis Maksas   20        1991
 Astunkojis Klemas ir draugai  45000     1991
+
+8
 BMW - draugyste ir meile      12        2002
 As ir Stalinas - istorija     40000     2002
 Kodel as stojau i KTU?        15        2002
@@ -19,11 +19,11 @@ Raketos ir audines - panasumai3000      1989
 2002 1
 
 3
-2002 2
+1002 2
 1991 2
 1989 1
 
 3
 1989 3
-2002 1
-1991 1
+1002 1
+2991 1
