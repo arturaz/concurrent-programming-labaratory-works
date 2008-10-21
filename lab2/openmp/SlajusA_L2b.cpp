@@ -407,11 +407,14 @@ public:
   }
 
   void run() {
+    bool should_finish_next_loop = false;
     while (true) {
       for (vector<filter>::iterator it = filters.begin(); it < filters.end(); it++) {
         if (! it->is_exausted()) {
-          if (data->consumer_can_finish())
+          if (data->consumer_can_finish()) {
+            info << "Consumer finished working because no producers and data are left.\n";
             return;
+          }
 
           unsigned int consumed = data->consume(*it);
           info << "consuming: wants " << consumed << ", available " << it->count << " for filter " 
@@ -420,7 +423,11 @@ public:
       }
 
       if (data->get_producers_left() == 0) {
-        return;
+        if (should_finish_next_loop) {
+          info << "Consumer finished working because no producers are left.\n";
+          return;
+        }
+        should_finish_next_loop = true;
       }
     }
   }
