@@ -1,76 +1,108 @@
 #define N 2
 #define M 3
 #define TOTAL_THREADS N+M
+#define DEBUG_ON true
+#define debug if (DEBUG_ON) cerr
 
 #include <iostream>
 #include <fstream>
+#include <vector>
 #include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
 using namespace std;
 
-struct book {
+class book { // {{{
+public:
   char title[32];
   unsigned int printing;
   unsigned int year;
   // Additional attribute for grouping.
   unsigned int count;
-};
 
-class book_list {
-public:
-  book *data;
-  unsigned int length;
-
-  book_list() {
-    data = NULL;
-    length = 0;
+  /**
+   * Print a book to stdout.
+   */
+  void print() {
+    printf("%-31s | %-10d | %-4d | %-3d\n", title, printing, year, count);
   }
-
-  void init(unsigned int length) {
-    data = new book[length];
-    this->length = length;
-  }
-
-  ~book_list() {
-    if (data != NULL)
-      delete data;
-  }
-};
+}; // }}}
 
 struct filter {
   unsigned int year;
   unsigned int count;
 };
 
-class filter_list {
+/**
+ * Simple wrapper for OMP lock.
+ */
+class omp_lock { // {{{
+private:
+  omp_lock_t* l;
 public:
-  filter *data;
-  unsigned int length;
-
-  filter_list() {
-    data = NULL;
-    length = 0;
+  omp_lock() {
+    l = new omp_lock_t;
+    omp_init_lock(l);
   }
 
-  void init(unsigned int length) {
-    data = new filter[length];
-    this->length = length;
+  ~omp_lock() {
+    omp_destroy_lock(l);
+    delete l;
   }
 
-  ~filter_list() {
-    if (data != NULL)
-      delete data;
+  /**
+   * Acquire the lock. Wraps omp_set_lock.
+   */
+  void acquire() {
+    omp_set_lock(l);
   }
 
-};
+  /**
+   * Release the lock. Wraps omp_unset_lock.
+   */
+  void release() {
+    omp_unset_lock(l);
+  }
+}; // }}}
 
 /**
- * Simple class for storing name.
+ * Array-like storage for producers and consumers.
+ *
+ * Provides locking.
  */
-class named_class { // {{{
+class storage { // {{{
+private:
+  vector<book> books;
+  omp_lock lock;
+public:
+  void store(book &b) {
+    lock.acquire();
+    bool saved = false;
+    for (vector<book>::iterator it = books.begin(); it < books.end(); it++) {
+      if (it->year == b.year) {
+        debug << "found existing book " << it->title << ", incrementing from " 
+          << it->count << " to " << (it->count + b.count) << " by " << b.count << "\n";
+        it->count += b.count;
+        saved = true;
+      }
+    }
+
+    if (! saved) {
+      debug << "adding new book " << b.title << "\n";
+      books.push_back(b);
+    }
+    lock.release();
+  }
+}; // }}}
+
+/**
+ * Both producers and consumers must extend this..
+ */
+class base_class { // {{{
 private:
   string name;
+protected:
+  storage *data;
 public:
   /**
    * Set name.
@@ -87,14 +119,29 @@ public:
   string get_name() {
     return name;
   }
+
+  /**
+   * Print out info string.
+   */
+  void info(string s) {
+    cout << "[" << name << "] " << s;
+  }
+
+  /**
+   * Set storage.
+   */
+  void set_storage(storage *data) {
+    this->data = data;
+  }
+
 }; // }}}
 
 /**
  * Class for producing data and storing it in shared array.
  */
-class producer : public named_class { // {{{
+class producer : public base_class { // {{{
 private:
-  book_list books;
+  vector<book> books;
 
 public:
   producer() {}
@@ -114,32 +161,45 @@ public:
     // Read length
     unsigned int length;
     (*in) >> length;
-    books.init(length);
     in->get();
 
-    for (int i = 0; i < books.length; i++) {
-      in->get(books.data[i].title, 31);
-      *in >> books.data[i].printing;
-      *in >> books.data[i].year;
-      books.data[i].count = 1;
+    for (int i = 0; i < length; i++) {
+      book b;
+      in->get(b.title, 31);
+      *in >> b.printing;
+      *in >> b.year;
+      b.count = 1;
+      books.push_back(b);
       in->get();
     }
 
     in->get();
   }
 
+  /**
+   * Print all books to stdout.
+   */
+  void print() {
+    for (vector<book>::iterator it=books.begin(); it < books.end(); it++) {
+      it->print();
+    }
+  }
+
   void run() {
-    cout << "yay\n";
-    //cout << get_name();
+    for (vector<book>::iterator it=books.begin(); it < books.end(); it++) {
+      data->store(*it);
+      info("Stored: ");
+      it->print();
+    }
   }
 }; // }}}
 
 /**
  * Class for consuming data.
  */
-class consumer : public named_class { // {{{
+class consumer : public base_class { // {{{
 private:
-  filter_list filters;
+  vector<filter> filters;
 public:
   consumer() {}
 
@@ -155,12 +215,13 @@ public:
     // Read length
     unsigned int length;
     (*in) >> length;
-    filters.init(length);
     in->get();
 
-    for (int i = 0; i < filters.length; i++) {
-      *in >> filters.data[i].year;
-      *in >> filters.data[i].count;
+    for (int i = 0; i < length; i++) {
+      filter f;
+      *in >> f.year;
+      *in >> f.count;
+      filters.push_back(f);
       in->get();
     }
 
@@ -168,69 +229,13 @@ public:
   }
 
   void run() {
-    //cout << "yayc\n";
-    //cout << get_name();
   }
 }; // }}}
-
-/**
- * Array-like storage for producers and consumers.
- *
- * Provides locking.
- */
-class storage { // {{{
-private:
-  book_list books;
-  omp_lock_t* lock;
-public:
-  storage() {
-    lock = new omp_lock_t;
-    omp_init_lock(lock);
-  }
-
-  ~storage() {
-    omp_destroy_lock(lock);
-    delete lock;
-  }
-}; // }}}
-
-void print_books(book_list &list, string desc) { // {{{
-  printf("%-10s | %-2s | %-30s | %-10s | %-4s\n", "TID", "Nr", "Title", "Printing", "Year");
-  for (int i = 0; i < list.length; i++) {
-    string name("Papildyti");
-    name += desc;
-    printf("%-10s | %-2d | %-30s | %-10d | %-4d\n", name.c_str(), i + 1,
-        list.data[i].title,
-        list.data[i].printing,
-        list.data[i].year
-        );
-    int amax = rand() * 1000;
-    for (int a = 0; a < amax; a++)
-      amax ^ a;
-  }
-  cout << "\n";
-} // }}}
-
-void print_filters(filter_list &list, string desc) { // {{{
-  printf("%-10s | %-4s | %-s\n", "TID", "Nr", "Year", "Count");
-  for (int i = 0; i < list.length; i++) {
-    string name("Naudoti");
-    name += desc;
-    printf("%-10s | %-2d | %-4d | %-d\n", name.c_str(), i + 1,
-        list.data[i].year,
-        list.data[i].count
-        );
-    int amax = rand() * 1000;
-    for (int a = 0; a < amax; a++)
-      amax ^ a;
-  }
-  cout << "\n";
-} // }}}
 
 int main(int argc, char *argv[]) {
   producer producers[N];
   consumer consumers[M];
-  storage data;
+  storage *data = new storage;
 
   ifstream *in = new ifstream;
   if (argc == 2) {
@@ -243,11 +248,13 @@ int main(int argc, char *argv[]) {
   for (int i = 0; i < N; i++) {
     producers[i].set_name("Papildyti", i + 1);
     producers[i].read(in);
+    producers[i].set_storage(data);
   }
 
   for (int i = 0; i < M; i++) {
     consumers[i].set_name("Naudoti", i + 1);
     consumers[i].read(in);
+    consumers[i].set_storage(data);
   }
 
   in->close();
@@ -257,27 +264,24 @@ int main(int argc, char *argv[]) {
   {
     switch (omp_get_thread_num()) {
       case 0:
-        cout << "case0\n";
         producers[0].run();
         break;
       case 1:
-        cout << "case1\n";
         producers[1].run();
         break;
       case 2:
-        cout << "case2\n";
         consumers[0].run();
         break;
       case 3:
-        cout << "case3\n";
         consumers[1].run();
         break;
       case 4:
-        cout << "case4\n";
         consumers[2].run();
         break;
     }
   }
+
+  delete data;
 
   return 0;
 }
