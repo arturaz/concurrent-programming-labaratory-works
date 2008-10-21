@@ -1,8 +1,10 @@
 #define N 2
 #define M 3
 #define TOTAL_THREADS N+M
-#define DEBUG_ON true
-#define debug if (DEBUG_ON) cerr
+#define DEBUG_ON false
+#define DEBUG_STREAM cerr
+#define debug if (DEBUG_ON) DEBUG_STREAM
+#define info if (DEBUG_ON) print_info(); if (DEBUG_ON) DEBUG_STREAM
 
 #include <iostream>
 #include <fstream>
@@ -26,12 +28,62 @@ public:
   void print() {
     printf("%-31s | %-10d | %-4d | %-3d\n", title, printing, year, count);
   }
+
+  /**
+   * Is this book container empty?
+   */
+  bool empty() {
+    return count == 0;
+  }
+
+  bool operator==(book &b) {
+    return (this->title == b.title) && (this->printing == b.printing) 
+      && (this->year == b.year) && (this->count == b.count);
+  }
 }; // }}}
 
-struct filter {
+class filter { // {{{
+private:
+  unsigned int consumed;
+public:
   unsigned int year;
   unsigned int count;
-};
+
+  filter() {
+    consumed = 0;
+  }
+  
+  /**
+   * Print to stdout.
+   */
+  void print() {
+    printf("Year: %-4d | Count: %-3d | Consumed: %-3d\n", year, count, consumed);
+  }
+
+  /**
+   * How much does this filter want to consume?
+   */
+  unsigned int get_wants_to_consume() {
+    return count - consumed;
+  }
+
+  /**
+   * Record that we have consumed count i.
+   */
+  void consume(unsigned int i) {
+    consumed += i;
+    // Safety trigger.
+    if (consumed > count)
+      consumed = count;
+  }
+
+  /**
+   * Have we consumed everything we need?
+   */
+  bool is_exausted() {
+    return count == consumed;
+  }
+}; // }}}
 
 /**
  * Simple wrapper for OMP lock.
@@ -74,7 +126,47 @@ class storage { // {{{
 private:
   vector<book> books;
   omp_lock lock;
+  omp_lock producer_lock;
+  unsigned int producer_count;
 public:
+  storage(int count) {
+    producer_count = count;
+  }
+
+  /**
+   * Reduce working producer count by 1.
+   */
+  void producer_finished() {
+    producer_lock.acquire();
+    producer_count -= 1;
+    producer_lock.release();
+  }
+
+  /**
+   * How many producers left working?
+   */
+  unsigned int get_producers_left() {
+    producer_lock.acquire();
+    unsigned int i = producer_count;
+    producer_lock.release();
+    return i;
+  }
+
+  /**
+   * Can consumer finish?
+   */
+  bool consumer_can_finish() {
+    producer_lock.acquire();
+    lock.acquire();
+    bool can_finish = (producer_count == 0) && (books.size() == 0);
+    lock.release();
+    producer_lock.release();
+    return can_finish;
+  }
+
+  /**
+   * Store book into storage.
+   */
   void store(book &b) {
     lock.acquire();
     bool saved = false;
@@ -92,6 +184,71 @@ public:
       books.push_back(b);
     }
     lock.release();
+  }
+
+  /**
+   * Consume a book by filter.
+   *
+   * Return number of items consumed.
+   */
+  unsigned int consume(filter &f) {
+    lock.acquire();
+    unsigned int consumed = 0;
+    book *b = find_by_year(f.year);
+    if (b != NULL) {
+      unsigned int wants_to_consume = f.get_wants_to_consume();
+      if (b->count < wants_to_consume)
+        consumed = b->count;
+      else
+        consumed = wants_to_consume;
+
+      b->count -= consumed;
+      if (b->empty()) {
+        debug << "Deleting " << b->title << endl;
+        remove(b);
+      }
+    }
+    lock.release();
+    return consumed;
+  }
+
+  /**
+   * Find first book by given year.
+   */
+  book* find_by_year(unsigned int year) {
+    for (vector<book>::iterator it = books.begin(); it < books.end(); it++) {
+      if (it->year == year) {
+        return &(*it);
+      }
+    }
+
+    return NULL;
+  }
+
+  /**
+   * Remove book from storage.
+   */
+  void remove(book* b) {
+    for (vector<book>::iterator it = books.begin(); it < books.end(); it++) {
+      if (*b == *it) {
+        books.erase(it);
+        return;
+      }
+    }    
+  }
+
+  /**
+   * Print everything to stdout.
+   */
+  void print() {
+    if (books.size() == 0) {
+      cout << "No data.\n";
+    }
+    else {
+      for (vector<book>::iterator it = books.begin(); it < books.end(); it++) {
+        it->print();
+      }
+    }
   }
 }; // }}}
 
@@ -123,8 +280,8 @@ public:
   /**
    * Print out info string.
    */
-  void info(string s) {
-    cout << "[" << name << "] " << s;
+  void print_info() {
+    DEBUG_STREAM << "[" << name << "] ";
   }
 
   /**
@@ -188,9 +345,11 @@ public:
   void run() {
     for (vector<book>::iterator it=books.begin(); it < books.end(); it++) {
       data->store(*it);
-      info("Stored: ");
+      info << "Stored: ";
       it->print();
     }
+
+    data->producer_finished();
   }
 }; // }}}
 
@@ -229,13 +388,30 @@ public:
   }
 
   void run() {
+    while (true) {
+      for (vector<filter>::iterator it = filters.begin(); it < filters.end(); it++) {
+        if (! it->is_exausted()) {
+          if (data->consumer_can_finish())
+            return;
+
+          unsigned int consumed = data->consume(*it);
+          info << "Consuming " << consumed << " from " << it->count << " for filter " 
+            << it->year << "\n";
+          it->consume(consumed);
+        }
+      }
+
+      if (data->get_producers_left() == 0) {
+        return;
+      }
+    }
   }
 }; // }}}
 
 int main(int argc, char *argv[]) {
   producer producers[N];
   consumer consumers[M];
-  storage *data = new storage;
+  storage *data = new storage(N);
 
   ifstream *in = new ifstream;
   if (argc == 2) {
@@ -280,6 +456,10 @@ int main(int argc, char *argv[]) {
         break;
     }
   }
+
+  #pragma omp barrier
+  cout << "Galutiniai rezultatai:\n";
+  data->print();
 
   delete data;
 
