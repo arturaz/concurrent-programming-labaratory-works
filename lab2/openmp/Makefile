@@ -11,7 +11,7 @@ kazka: build
 
 build:
 	mkdir -p dist
-	g++ -o dist/app -fopenmp SlajusA_L2b.cc
+	g++ -o dist/app -fopenmp SlajusA_L2b.cpp
 
 clean:
 	rm -rfv dist
