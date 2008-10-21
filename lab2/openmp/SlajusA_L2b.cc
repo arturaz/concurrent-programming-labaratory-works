@@ -183,8 +183,14 @@ private:
   book_list books;
   omp_lock_t* lock;
 public:
-  storage(omp_lock_t* lock) {
-    this->lock = lock;
+  storage() {
+    lock = new omp_lock_t;
+    omp_init_lock(lock);
+  }
+
+  ~storage() {
+    omp_destroy_lock(lock);
+    delete lock;
   }
 }; // }}}
 
@@ -224,9 +230,7 @@ void print_filters(filter_list &list, string desc) { // {{{
 int main(int argc, char *argv[]) {
   producer producers[N];
   consumer consumers[M];
-  omp_lock_t* lock;
-  omp_init_lock(lock);
-  storage *data = new storage(lock);
+  storage data;
 
   ifstream *in = new ifstream;
   if (argc == 2) {
@@ -249,37 +253,31 @@ int main(int argc, char *argv[]) {
   in->close();
   delete in;
 
-  producers[0].run();
-  cout << "still working \n" << flush;
-
   #pragma omp parallel num_threads(TOTAL_THREADS)
   {
-    producers[0].run();
     switch (omp_get_thread_num()) {
       case 0:
         cout << "case0\n";
-        // Vien del to, kad shita iskvieciu, programa segfaultinas :(
+        producers[0].run();
         break;
       case 1:
         cout << "case1\n";
-        //producers[1].run();
+        producers[1].run();
         break;
       case 2:
         cout << "case2\n";
-        //consumers[0].run();
+        consumers[0].run();
         break;
       case 3:
         cout << "case3\n";
-        //consumers[1].run();
+        consumers[1].run();
         break;
       case 4:
         cout << "case4\n";
-        //consumers[2].run();
+        consumers[2].run();
         break;
     }
   }
-  omp_destroy_lock(lock);
-  delete data;
 
   return 0;
 }
