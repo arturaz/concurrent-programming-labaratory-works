@@ -75,6 +75,10 @@ public:
     return (this->title == b.title) && (this->printing == b.printing) 
       && (this->year == b.year) && (this->count == b.count);
   }
+
+  /*bool operator<(book b) {
+    return (this->title < b.title);
+  }*/
 }; // }}}
 
 class filter { // {{{
@@ -194,6 +198,7 @@ public:
     if (! saved) {
       debug << "adding new book " << b.title << "\n";
       books.push_back(b);
+      //sort(books.begin(), books.end());
     }
     lock.release();
   }
