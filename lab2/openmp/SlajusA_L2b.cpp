@@ -421,6 +421,29 @@ public:
   }
 }; // }}}
 
+/**
+ * 2-4 lab. darbuose iš masyvuose S1(k1), S2(k2), ..., Sn(kn) surašytų duomenų 
+ * pildomas vienas bendras sutvarkytas masyvas B(k) (tvarkymo raktas – 
+ * pasirinktas požymis). Pildymo metu „panašūs” elementai sujungiami, visiems 
+ * elementams įvedus papildomą lauką „kiekis”. Masyvuose V1(r1), V2(r2), ..., 
+ * Vm(rm) surašyti kiekiai ir požymiai, kuriuos turintys duomenys iš bendrojo 
+ * masyvo yra naudojami (atimant kiekius ir pašalinant, jei kiekis=0). 
+ * 
+ * Kiekvienas procesas, pildantis bendrąjį masyvą, į reikiamą jo vietą vieną 
+ * duomenų porciją iš atitinkamo duomenų masyvo užrašo pats arba perduoda 
+ * aptarnaujančiam procesui (tuo atveju užrašo aptarnaujantis procesas). Visi 
+ * procesai pradeda darbą tuo pačiu metu. Naudojimo procesai turi dirbti tol, 
+ * kol dar yra dirbančių procesų, kurie gali įdėti jiems reikalingų duomenų.
+ * 
+ * 2 lab. darbas: semaforai ir blokuotės. Gijos rašo į bendrą masyvą (šalina 
+ * iš bendro masyvo). Realizuojama kritinių sekcijų apsauga ir sąlyginė 
+ * sinchronizacija.
+ * 
+ * n=2
+ * m=3
+ * knygos pavadinimas, tiražas, išleidimo metai
+ * @author Artūras Šlajus, IFF-6
+ */
 int main(int argc, char *argv[]) {
   producer producers[N];
   consumer consumers[M];
