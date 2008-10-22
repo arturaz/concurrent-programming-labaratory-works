@@ -49,6 +49,41 @@ public:
   }
 }; // }}}
 
+/**
+ * Counting semaphore.
+ */
+class semaphore { // {{{
+private:
+  int count;
+  omp_lock can_acquire;
+  omp_lock main_lock;
+public:
+  semaphore() {
+    semaphore(0);
+  }
+  
+  semaphore(int count) {
+    this->count = count;
+    if (count == 0)
+      can_acquire.acquire();
+  }
+
+  void acquire() {
+    can_acquire.acquire();
+    main_lock.acquire();
+    count--;
+    if (count > 0) can_acquire.release();
+    main_lock.release();  
+  }
+
+  void release() {
+    main_lock.acquire();
+    count++;
+    if (count > 0) can_acquire.release();
+    main_lock.release();
+  }
+}; // }}}
+
 class book { // {{{
 public:
   char title[32];
@@ -143,6 +178,7 @@ private:
   vector<book> books;
   omp_lock lock;
   omp_lock producer_lock;
+  semaphore can_read;
   unsigned int producer_count;
 public:
   storage(int count) {
@@ -201,6 +237,7 @@ public:
       //sort(books.begin(), books.end());
     }
     lock.release();
+    can_read.release();
   }
 
   /**
@@ -209,6 +246,7 @@ public:
    * Return number of items consumed.
    */
   unsigned int consume(filter &f) {
+    can_read.acquire();
     lock.acquire();
     unsigned int consumed = 0;
     book *b = find_by_year(f.year);
@@ -226,6 +264,9 @@ public:
       }
 
       f.consume(consumed);
+    }
+    else {
+      can_read.release();
     }
     lock.release();
     return consumed;
@@ -417,8 +458,8 @@ public:
           }
 
           unsigned int consumed = data->consume(*it);
-          info << "consuming: wants " << consumed << ", available " << it->count << " for filter " 
-            << it->year << "\n";
+          info << "consuming: wants " << it->count << ", consumed " << consumed << " for filter " 
+            << it->year << endl;
         }
       }
 
@@ -427,6 +468,7 @@ public:
           info << "Consumer finished working because no producers are left.\n";
           return;
         }
+        info << "Consumer will finish next loop because no producers are left.\n";
         should_finish_next_loop = true;
       }
     }
