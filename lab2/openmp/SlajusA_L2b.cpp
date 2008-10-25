@@ -111,9 +111,9 @@ public:
       && (this->year == b.year) && (this->count == b.count);
   }
 
-  /*bool operator<(book b) {
-    return (this->title < b.title);
-  }*/
+  bool operator<(book b) {
+    return (strcmp(this->title, b.title) == -1);
+  }
 }; // }}}
 
 class filter { // {{{
@@ -234,7 +234,7 @@ public:
     if (! saved) {
       debug << "adding new book " << b.title << "\n";
       books.push_back(b);
-      //sort(books.begin(), books.end());
+      sort(books.begin(), books.end());
     }
     lock.release();
     can_read.release();
