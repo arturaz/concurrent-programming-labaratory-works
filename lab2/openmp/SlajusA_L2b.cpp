@@ -1,7 +1,7 @@
 #define N 2
 #define M 3
 #define TOTAL_THREADS N+M
-#define DEBUG_ON true
+#define DEBUG_ON false
 #define DEBUG_STREAM cout
 #define debug if (DEBUG_ON) DEBUG_STREAM
 #define info if (DEBUG_ON) print_info(); if (DEBUG_ON) DEBUG_STREAM
@@ -110,16 +110,11 @@ public:
     return (this->title == b.title) && (this->printing == b.printing) 
       && (this->year == b.year) && (this->count == b.count);
   }
-
-  bool operator<(book b) {
-    return (strcmp(this->title, b.title) == -1);
-  }
 }; // }}}
 
 class filter { // {{{
 private:
   unsigned int consumed;
-  //omp_lock lock;
 public:
   unsigned int year;
   unsigned int count;
@@ -132,16 +127,14 @@ public:
    * Print to stdout.
    */
   void print() {
-    printf("Year: %-4d | Count: %-3d | Consumed: %-3d\n", year, count, consumed);
+    printf("%-4d | %-5d | %-3d\n", year, count, consumed);
   }
 
   /**
    * How much does this filter want to consume?
    */
   unsigned int get_wants_to_consume() {
-    //lock.acquire();
     unsigned int quantity = count - consumed;
-    //lock.release();
     return quantity;
   }
 
@@ -149,21 +142,17 @@ public:
    * Record that we have consumed count i.
    */
   void consume(unsigned int i) {
-    //lock.acquire();
     consumed += i;
     // Safety trigger.
     if (consumed > count)
       consumed = count;
-    //lock.release();
   }
 
   /**
    * Have we consumed everything we need?
    */
   bool is_exausted() {
-    //lock.acquire();
     bool exausted = count == consumed;
-    //lock.release();
     return exausted;
   }
 }; // }}}
@@ -233,11 +222,23 @@ public:
 
     if (! saved) {
       debug << "adding new book " << b.title << "\n";
-      books.push_back(b);
-      sort(books.begin(), books.end());
+      add_book(b);
     }
     lock.release();
     can_read.release();
+  }
+
+  // Sorted add book to books.
+  void add_book(book b) {
+    for (vector<book>::iterator it = books.begin(); it < books.end(); it++) {
+      if (it->year > b.year) {
+        books.insert(it, b);
+        return;
+      }
+    }
+
+    // If we haven't inserted it yet, push it at the end.
+    books.push_back(b);
   }
 
   /**
@@ -305,10 +306,24 @@ public:
       cout << "No data.\n";
     }
     else {
+      print_header();
+      int i = 1;
       for (vector<book>::iterator it = books.begin(); it < books.end(); it++) {
+        printf("%-3d | ", i);
         it->print();
+        i++;
       }
+      print_line();
     }
+  }
+  
+  void print_header() {
+    printf("%-3s | %-31s | %-10s | %-4s | %-3s\n", "Nr.", "Title", "Printing", "Year", "Count");
+    print_line();
+  }
+
+  void print_line() {
+    cout << "------------------------------------------------------------------\n";
   }
 }; // }}}
 
@@ -397,16 +412,30 @@ public:
    * Print all books to stdout.
    */
   void print() {
+    int i = 1;
+    print_header();
     for (vector<book>::iterator it=books.begin(); it < books.end(); it++) {
+      printf("%-3d | ", i);
       it->print();
+      i++;
     }
+    print_line();
+  }
+
+  void print_header() {
+    printf("%-3s | %-31s | %-10s | %-4s | %-3s\n", "Nr.", "Title", "Printing", "Year", "Count");
+    print_line();
+  }
+
+  void print_line() {
+    cout << "------------------------------------------------------------------\n";
   }
 
   void run() {
     for (vector<book>::iterator it=books.begin(); it < books.end(); it++) {
       data->store(*it);
       info << "Stored: ";
-      it->print();
+      if (DEBUG_ON) it->print();
     }
 
     data->producer_finished();
@@ -445,6 +474,28 @@ public:
     }
 
     in->get();
+  }
+  
+  /**
+   * Print all filters to stdout.
+   */
+  void print() {
+    int i = 1;
+    print_header();
+    for (vector<filter>::iterator it=filters.begin(); it < filters.end(); it++) {
+      printf("%-3d | ", i);
+      it->print();
+      i++;
+    }
+    print_line();
+  }
+  
+  void print_header() {
+    printf("%-3s | %-4s | %-5s | %-3s\n", "Nr.", "Year", "Count", "Consumed");
+  }
+
+  void print_line() {
+    cout << "------------------------------------------\n";
   }
 
   void run() {
@@ -515,12 +566,14 @@ int main(int argc, char *argv[]) {
     producers[i].set_name("Papildyti", i + 1);
     producers[i].read(in);
     producers[i].set_storage(data);
+    producers[i].print();
   }
 
   for (int i = 0; i < M; i++) {
     consumers[i].set_name("Naudoti", i + 1);
     consumers[i].read(in);
     consumers[i].set_storage(data);
+    consumers[i].print();
   }
 
   in->close();
