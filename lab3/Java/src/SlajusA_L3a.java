@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.Semaphore;
 
+
 /**
  * 2-4 lab. darbuose iš masyvuose S1(k1), S2(k2), ..., Sn(kn) surašytų duomenų 
  * pildomas vienas bendras sutvarkytas masyvas B(k) (tvarkymo raktas – 
@@ -22,8 +23,8 @@ import java.util.concurrent.Semaphore;
  * procesai pradeda darbą tuo pačiu metu. Naudojimo procesai turi dirbti tol, 
  * kol dar yra dirbančių procesų, kurie gali įdėti jiems reikalingų duomenų.
  * 
- * 2 lab. darbas: semaforai ir blokuotės. Gijos rašo į bendrą masyvą (šalina 
- * iš bendro masyvo). Realizuojama kritinių sekcijų apsauga ir sąlyginė 
+ * 3 lab. darbas: monitoriai ir kritinės sritys. Gijos rašo į bendrą masyvą 
+ * (šalina iš bendro masyvo). Realizuojama kritinių sekcijų apsauga ir sąlyginė 
  * sinchronizacija.
  * 
  * n=2
@@ -31,21 +32,23 @@ import java.util.concurrent.Semaphore;
  * knygos pavadinimas, tiražas, išleidimo metai
  * @author Artūras Šlajus, IFF-6
  */
-public class SlajusA_L2a {    
+public class SlajusA_L3a {    
     /**
      * Main app.
      * 
      * @param args
      */    
     public static void main(String[] args) throws IOException {
-        new SlajusA_L2a();
+        if (args.length == 1)
+            new SlajusA_L3a(args[0]);
+        else
+            new SlajusA_L3a("SlajusA.txt");
     }
 
-    public SlajusA_L2a() throws IOException {
-        new App("SlajusA.txt");
+    public SlajusA_L3a(String fileName) throws IOException {
+        new App(fileName);
     }
 }
-
 class App {    
     /**
      * Number of threads.
@@ -77,9 +80,11 @@ class App {
     public void printData() {
         for (Producer l: producers) {
             l.writeDataTo(System.out);
+            System.out.println("");
         }
         for (Consumer l: consumers) {
             l.writeDataTo(System.out);
+            System.out.println("");
         }
     }
     
@@ -224,7 +229,7 @@ class Book extends Record implements Comparable<Book> {
     /**
      * Format of output line.
      */
-    public String format = "%2d | %-30s | %10d | %4d | count: %d";
+    public String format = "%2d | %-30s | %10d | %4d | %d";
 
     /**
      * Title of the book.
@@ -283,7 +288,7 @@ class Producer extends RecordList {
     /**
      * Format of the title
      */
-    public String format = "%-10s | %2s | %-30s | %-10s | %-4s";
+    public String format = "%2s | %-30s | %-10s | %-4s | %s";
 
     protected Book[] data;
 
@@ -303,8 +308,8 @@ class Producer extends RecordList {
 
     @Override
     public String getHeader() {
-        return String.format(format, "Thread", "Nr", "Title", "Printing", 
-                "Year");
+        return String.format(format, "Nr", "Title", "Printing", "Year", "Count") + 
+                "\n------------------------------------------------------------------";
     }
 
     public void writeDataTo(PrintStream out) {
@@ -395,7 +400,8 @@ class Consumer extends RecordList {
 
     @Override
     public String getHeader() {
-        return String.format(format, "Nr", "Year", "Count");
+        return String.format(format, "Nr", "Year", "Count") +
+                "\n------------------";
     }
 
     public void writeDataTo(PrintStream out) {
@@ -435,10 +441,8 @@ class Consumer extends RecordList {
  */
 class OrderedArray {
     private ArrayList<Book> data = new ArrayList<Book>();
-    public Semaphore lock = new Semaphore(1, true);
-    public Semaphore producersLock = new Semaphore(1, true);
-    public Semaphore canRead = new Semaphore(0, true);
     private int producersWorking;
+    private int canRead = 0;
 
     public OrderedArray(int producersWorking) {
         this.producersWorking = producersWorking;
@@ -464,10 +468,7 @@ class OrderedArray {
      * is one with same year as in book.
      * @param book
      */
-    public Book produce(Book book) throws InterruptedException {
-        App.debug("Aquiring lock.");
-        lock.acquire();
-        App.debug("Aquired lock.");
+    synchronized public Book produce(Book book) throws InterruptedException {
         Book existing = findByYear(book.getYear());
         if (existing == null) {
             data.add(book);
@@ -478,9 +479,8 @@ class OrderedArray {
         }
 
         Collections.sort(data);
-        lock.release();
-        canRead.release();
-        App.debug("Released lock.");
+        canRead++;
+        notifyAll();
         return book;
     }
     
@@ -492,28 +492,18 @@ class OrderedArray {
         data.remove(book);
     }
     
-    public int getProducersLeft() throws InterruptedException {
-        producersLock.acquire();
-        int producers = producersWorking;
-        producersLock.release();
-        return producers;
+    synchronized public int getProducersLeft() throws InterruptedException {
+        return producersWorking;
     }
     
-    public void producerFinished() throws InterruptedException {
-        producersLock.acquire();
+    synchronized public void producerFinished() throws InterruptedException {
         producersWorking -= 1;
-        producersLock.release();
     }
     
-    public boolean consumerCanFinish() throws InterruptedException {
-        producersLock.acquire();
-        lock.acquire();
+    synchronized public boolean consumerCanFinish() throws InterruptedException {
         App.debug("can finish called, producers working: " 
                 + producersWorking + ", data size: " + data.size());
-        boolean canFinish = (producersWorking == 0) && data.size() == 0;
-        lock.release();
-        producersLock.release();
-        return canFinish;
+        return (producersWorking == 0) && data.size() == 0;
     }
 
     /**
@@ -522,9 +512,8 @@ class OrderedArray {
      * @param year
      * @return
      */
-    public Book consume(Filter filter) throws InterruptedException {
-        canRead.acquire();
-        lock.acquire();
+    synchronized public Book consume(Filter filter) throws InterruptedException {
+        while (canRead == 0) wait();
         int year = filter.getYear();
         int count = filter.getCount();
         App.debug("Finding by YEAR " + year);
@@ -538,18 +527,20 @@ class OrderedArray {
                     App.debug("Deleted " + book.toString());
                 }
                 App.debug("READY FOR CONSUMING " + book.toString());
+                canRead--;
             }
             else {
                 book = null;
             }
         }
         
-        if (book == null)
-            canRead.release();
-        
-        lock.release();
         return book;
-    }
+    }    
+    
+    /**
+     * Format of the title
+     */
+    public String format = "%2s | %-30s | %-10s | %-4s | %s";
     
     /**
      * Prints data out in a nice table.
@@ -559,6 +550,10 @@ class OrderedArray {
             out.println("No data.");
         }
         else {
+            out.println(
+                    String.format(format, "Nr", "Title", "Printing", "Year", "Count") + 
+                    "\n------------------------------------------------------------------"
+            );
             for (Object o: data) {
                 out.println(o.toString());
             }
