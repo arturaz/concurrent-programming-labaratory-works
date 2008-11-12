@@ -1,4 +1,7 @@
-run: nieko viska kazka
+run: nieko viska kazka tusti
+
+tusti: build
+	dist/app SlajusA_tusti.txt
 
 nieko: build
 	dist/app SlajusA_nieko.txt
@@ -11,7 +14,7 @@ kazka: build
 
 build:
 	mkdir -p dist
-	g++ -o dist/app -fopenmp SlajusA_L2b.cpp
+	g++ -o dist/app -fopenmp SlajusA_L3b.cpp
 
 clean:
 	rm -rfv dist

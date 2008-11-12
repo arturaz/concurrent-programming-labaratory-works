@@ -165,8 +165,6 @@ public:
 class storage { // {{{
 private:
   vector<book> books;
-  omp_lock lock;
-  omp_lock producer_lock;
   semaphore can_read;
   unsigned int producer_count;
 public:
@@ -178,18 +176,20 @@ public:
    * Reduce working producer count by 1.
    */
   void producer_finished() {
-    producer_lock.acquire();
-    producer_count -= 1;
-    producer_lock.release();
+    #pragma omp critical
+    {
+      producer_count -= 1;
+      can_read.release();
+    }
   }
 
   /**
    * How many producers left working?
    */
   unsigned int get_producers_left() {
-    producer_lock.acquire();
-    unsigned int i = producer_count;
-    producer_lock.release();
+    unsigned int i;
+    #pragma omp critical
+      i = producer_count;
     return i;
   }
 
@@ -197,11 +197,9 @@ public:
    * Can consumer finish?
    */
   bool consumer_can_finish() {
-    producer_lock.acquire();
-    lock.acquire();
-    bool can_finish = (producer_count == 0) && (books.size() == 0);
-    lock.release();
-    producer_lock.release();
+    bool can_finish;
+    #pragma omp critical
+      can_finish = (producer_count == 0) && (books.size() == 0);
     return can_finish;
   }
 
@@ -209,23 +207,24 @@ public:
    * Store book into storage.
    */
   void store(book &b) {
-    lock.acquire();
-    bool saved = false;
-    for (vector<book>::iterator it = books.begin(); it < books.end(); it++) {
-      if (it->year == b.year) {
-        debug << "found existing book " << it->title << ", incrementing from " 
-          << it->count << " to " << (it->count + b.count) << " by " << b.count << "\n";
-        it->count += b.count;
-        saved = true;
+    #pragma omp critical
+    {
+      bool saved = false;
+      for (vector<book>::iterator it = books.begin(); it < books.end(); it++) {
+        if (it->year == b.year) {
+          debug << "found existing book " << it->title << ", incrementing from " 
+            << it->count << " to " << (it->count + b.count) << " by " << b.count << "\n";
+          it->count += b.count;
+          saved = true;
+        }
       }
-    }
 
-    if (! saved) {
-      debug << "adding new book " << b.title << "\n";
-      add_book(b);
+      if (! saved) {
+        debug << "adding new book " << b.title << "\n";
+        add_book(b);
+      }
+      can_read.release();
     }
-    lock.release();
-    can_read.release();
   }
 
   // Sorted add book to books.
@@ -248,28 +247,29 @@ public:
    */
   unsigned int consume(filter &f) {
     can_read.acquire();
-    lock.acquire();
     unsigned int consumed = 0;
-    book *b = find_by_year(f.year);
-    if (b != NULL) {
-      unsigned int wants_to_consume = f.get_wants_to_consume();
-      if (b->count < wants_to_consume)
-        consumed = b->count;
-      else
-        consumed = wants_to_consume;
+    #pragma omp critical
+    {
+      book *b = find_by_year(f.year);
+      if (b != NULL) {
+        unsigned int wants_to_consume = f.get_wants_to_consume();
+        if (b->count < wants_to_consume)
+          consumed = b->count;
+        else
+          consumed = wants_to_consume;
 
-      b->count -= consumed;
-      if (b->empty()) {
-        debug << "Deleting " << b->title << endl;
-        remove(b);
+        b->count -= consumed;
+        if (b->empty()) {
+          debug << "Deleting " << b->title << endl;
+          remove(b);
+        }
+
+        f.consume(consumed);
       }
-
-      f.consume(consumed);
+      else {
+        can_read.release();
+      }
     }
-    else {
-      can_read.release();
-    }
-    lock.release();
     return consumed;
   }
 
