@@ -58,6 +58,7 @@ class App {
     
     Producer[] producers = new Producer[producerCount];
     Consumer[] consumers = new Consumer[consumerCount];
+    static Thread[] consumerThreads = new Thread[consumerCount];
     static OrderedArray data = new OrderedArray(producerCount);
     static Semaphore producersDone = new Semaphore(producerCount);
     static double startTime = System.currentTimeMillis();
@@ -93,10 +94,10 @@ class App {
     }
     
     public static void debug(String s) {
-//        System.out.println(String.format("%4.0fms [ %-10s ] -- %s",
-//                getPassedTime(),
-//                Thread.currentThread().getName(),
-//                s));
+        System.out.println(String.format("%4.0fms [ %-10s ] -- %s",
+                getPassedTime(),
+                Thread.currentThread().getName(),
+                s));
     }
 
     /**
@@ -112,10 +113,10 @@ class App {
             return;
         }
 
-        // Create appenders
+        // Create producers/consumers
         for (int i = 0; i < producerCount; i++) {
             producers[i] = new Producer(in, i);
-        }
+        }           
         for (int i = 0; i < consumerCount; i++) {
             consumers[i] = new Consumer(in, i);
         }
@@ -127,11 +128,22 @@ class App {
      * Start all threads.
      */
     public void startThreads() {
+        int i = 0;
+        for (Consumer l: consumers) {            
+            consumerThreads[i] = new Thread(l);
+            consumerThreads[i].start();
+            i++;
+        }
         for (Producer l: producers) {
             new Thread(l).start();
         }
-        for (Consumer l: consumers) {
-            new Thread(l).start();
+    }
+    
+    static public void producerFinished() throws InterruptedException {
+        data.producerFinished();
+        // Kick consumers out of deadlock.
+        for (Thread t: consumerThreads) {
+            t.interrupt();
         }
     }
 }
@@ -324,7 +336,7 @@ class Producer extends RecordList {
                 book = App.data.produce(book);
                 App.debug("[Produced] " + book.toString());
             }
-            App.data.producerFinished();
+            App.producerFinished();
         }
         catch (InterruptedException e) {}
     }
@@ -410,8 +422,8 @@ class Consumer extends RecordList {
 
     public void run() {
         Thread.currentThread().setName("Naudoti" + getNumber());
-        try {
-            while (true) {
+        while (true) {                
+            try {
                 for (Filter filter: data) {
                     if (! filter.isExausted()) {
                         if (App.data.consumerCanFinish())
@@ -431,8 +443,8 @@ class Consumer extends RecordList {
                 if (App.data.getProducersLeft() == 0)
                     return;
             }
+            catch (InterruptedException e) {}
         }
-        catch (InterruptedException e) {}
     }
 }
 
@@ -530,7 +542,11 @@ class OrderedArray {
      * @return
      */
     synchronized public Book consume(Filter filter) throws InterruptedException {
-        while (canRead == 0) wait();
+        System.out.println("canRead: " + canRead);
+        while (canRead == 0) {
+            System.out.println("yay!");
+            wait();
+        }
         int year = filter.getYear();
         int count = filter.getCount();
         App.debug("Finding by YEAR " + year);
