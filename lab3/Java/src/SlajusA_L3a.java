@@ -471,17 +471,34 @@ class OrderedArray {
     synchronized public Book produce(Book book) throws InterruptedException {
         Book existing = findByYear(book.getYear());
         if (existing == null) {
-            data.add(book);
+            addBook(book);
         }
         else {
             book = existing;
             book.count += 1;
         }
 
-        Collections.sort(data);
         canRead++;
         notifyAll();
         return book;
+    }
+    
+    /**
+     * Sorted add book to data.
+     * @param book
+     */
+    private void addBook(Book book) {
+        int index = 0;
+        for (Book b: data) {
+            if (book.getYear().compareTo(b.getYear()) > -1) {
+                data.add(index, book);
+                return;
+            }
+            index++;
+        }
+        
+        // Add to end elsewhere
+        data.add(book);
     }
     
     /**
