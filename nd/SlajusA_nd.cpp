@@ -133,6 +133,7 @@ int main() {
 
   // Start parallel.
   MPI::Init();
+
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
@@ -172,15 +173,37 @@ int main() {
         debug << "getting data for index " << index << endl;
         int cellA = a.get(index);
         int cellB = b.get(index);
+
+        ifdebug {
+          debug << "A:\n";
+          a.print(); 
+          debug << "B:\n";
+          b.print();
+        }
+
         debug << "got a: " << cellA << ", b: " << cellB << endl;
 
         debug << "sending cellA (" << cellA << ") to " << sendTo << endl;
         MPI::COMM_WORLD.Send(&cellA, 1, MPI::INT, sendTo, 1);
         debug << "sent cellA" << endl;
 
+        ifdebug {
+          debug << "A:\n";
+          a.print(); 
+          debug << "B:\n";
+          b.print();
+        }
+
         debug << "sending cellB (" << cellB << ") to " << sendTo << endl;
         MPI::COMM_WORLD.Send(&cellB, 1, MPI::INT, sendTo, 2);
         debug << "sent cellB" << endl;
+        
+        ifdebug {
+          debug << "A:\n";
+          a.print(); 
+          debug << "B:\n";
+          b.print();
+        }
       }
 
       debug << "Shifting matrixes...\n";
@@ -229,5 +252,6 @@ int main() {
     // Send back the result.
     MPI::COMM_WORLD.Send(&cell, 1, MPI::INT, 0, 0);
   }
+
   MPI::Finalize();
 }
