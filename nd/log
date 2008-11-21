@@ -1,0 +1,1258 @@
+libibverbs: Fatal: couldn't read uverbs ABI version.
+--------------------------------------------------------------------------
+[0,1,0]: OpenIB on host arturas-desktop was unable to find any HCAs.
+Another transport will be used instead, although this may result in 
+lower performance.
+--------------------------------------------------------------------------
+libibverbs: Fatal: couldn't read uverbs ABI version.
+--------------------------------------------------------------------------
+[0,1,1]: OpenIB on host arturas-desktop was unable to find any HCAs.
+Another transport will be used instead, although this may result in 
+lower performance.
+--------------------------------------------------------------------------
+libibverbs: Fatal: couldn't read uverbs ABI version.
+--------------------------------------------------------------------------
+[0,1,2]: OpenIB on host arturas-desktop was unable to find any HCAs.
+Another transport will be used instead, although this may result in 
+lower performance.
+--------------------------------------------------------------------------
+libibverbs: Fatal: couldn't read uverbs ABI version.
+--------------------------------------------------------------------------
+[0,1,3]: OpenIB on host arturas-desktop was unable to find any HCAs.
+Another transport will be used instead, although this may result in 
+lower performance.
+--------------------------------------------------------------------------
+libibverbs: Fatal: couldn't read uverbs ABI version.
+--------------------------------------------------------------------------
+[0,1,5]: OpenIB on host arturas-desktop was unable to find any HCAs.
+Another transport will be used instead, although this may result in 
+lower performance.
+--------------------------------------------------------------------------
+libibverbs: Fatal: couldn't read uverbs ABI version.
+--------------------------------------------------------------------------
+[0,1,4]: OpenIB on host arturas-desktop was unable to find any HCAs.
+Another transport will be used instead, although this may result in 
+lower performance.
+--------------------------------------------------------------------------
+libibverbs: Fatal: couldn't read uverbs ABI version.
+--------------------------------------------------------------------------
+[0,1,6]: OpenIB on host arturas-desktop was unable to find any HCAs.
+Another transport will be used instead, although this may result in 
+lower performance.
+--------------------------------------------------------------------------
+libibverbs: Fatal: couldn't read uverbs ABI version.
+--------------------------------------------------------------------------
+[0,1,7]: OpenIB on host arturas-desktop was unable to find any HCAs.
+Another transport will be used instead, although this may result in 
+lower performance.
+--------------------------------------------------------------------------
+libibverbs: Fatal: couldn't read uverbs ABI version.
+libibverbs: Fatal: couldn't read uverbs ABI version.
+--------------------------------------------------------------------------
+[0,1,8]: OpenIB on host arturas-desktop was unable to find any HCAs.
+Another transport will be used instead, although this may result in 
+lower performance.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+[0,1,9]: OpenIB on host arturas-desktop was unable to find any HCAs.
+Another transport will be used instead, although this may result in 
+lower performance.
+--------------------------------------------------------------------------
+rank 4 | INIT
+rank 4 | receiving cellA
+rank 2 | INIT
+rank 2 | receiving cellA
+rank 1 | INIT
+rank 1 | receiving cellA
+rank 3 | INIT
+rank 3 | receiving cellA
+rank 0 | INIT
+rank 0 | Initial matrix:
+1    2    3    
+4    5    6    
+7    8    9    
+
+rank 0 | A after skewing:
+1    2    3    
+5    6    4    
+9    7    8    
+
+rank 0 | B after skewing:
+1    5    9    
+4    8    3    
+7    2    6    
+
+rank 0 | getting data for index 0
+rank 0 | A:
+1    2    3    
+5    6    4    
+9    7    8    
+
+rank 0 | B:
+1    5    9    
+4    8    3    
+7    2    6    
+
+rank 0 | got a: 1, b: 1
+rank 0 | sending cellA (1) to 1
+rank 0 | sent cellA
+rank 0 | A:
+1    2    3    
+5    6    4    
+9    7    8    
+
+rank 0 | B:
+1    5    9    
+4    8    3    
+7    2    6    
+
+rank 0 | sending cellB (1) to 1
+rank 0 | sent cellB
+rank 0 | A:
+1    2    3    
+5    6    4    
+9    7    8    
+
+rank 0 | B:
+1    5    9    
+4    8    3    
+7    2    6    
+
+rank 0 | getting data for index 1
+rank 0 | A:
+1    2    3    
+5    6    4    
+9    7    8    
+
+rank 0 | B:
+1    5    9    
+4    8    3    
+7    2    6    
+
+rank 0 | got a: 2, b: 5
+rank 0 | sending cellA (2) to 2
+rank 0 | sent cellA
+rank 0 | A:
+1    2    3    
+5    6    4    
+9    7    8    
+
+rank 0 | B:
+1    5    9    
+4    8    3    
+7    2    6    
+
+rank 0 | sending cellB (5) to 2
+rank 0 | sent cellB
+rank 0 | A:
+1    2    3    
+5    6    4    
+9    7    8    
+
+rank 0 | B:
+1    5    9    
+4    8    3    
+7    2    6    
+
+rank 0 | getting data for index 2
+rank 0 | A:
+1    2    3    
+5    6    4    
+9    7    8    
+
+rank 0 | B:
+1    5    9    
+4    8    3    
+7    2    6    
+
+rank 0 | got a: 3, b: 9
+rank 0 | sending cellA (3) to 3
+rank 0 | sent cellA
+rank 0 | A:
+1    2    3    
+5    6    136469448 
+9    7    8    
+
+rank 0 | B:
+1    5    9    
+4    8    3    
+7    2    6    
+
+rank 0 | sending cellB (9) to 3
+rank 0 | sent cellB
+rank 0 | A:
+1    2    3    
+5    6    136469448 
+9    7    8    
+
+rank 0 | B:
+1    5    9    
+4    8    3    
+7    2    6    
+
+rank 0 | getting data for index 3
+rank 0 | A:
+1    2    3    
+5    6    136469448 
+9    7    8    
+
+rank 0 | B:
+1    5    9    
+4    8    3    
+7    2    6    
+
+rank 0 | got a: 5, b: 4
+rank 0 | sending cellA (5) to 4
+rank 0 | sent cellA
+rank 0 | A:
+1    2    3    
+5    6    136469448 
+9    7    8    
+
+rank 0 | B:
+1    5    9    
+4    8    3    
+7    2    6    
+
+rank 0 | sending cellB (4) to 4
+rank 0 | sent cellB
+rank 0 | A:
+1    2    3    
+5    6    136469448 
+9    7    8    
+
+rank 0 | B:
+1    5    9    
+4    8    3    
+7    2    6    
+
+rank 0 | getting data for index 4
+rank 0 | A:
+1    2    3    
+5    6    136469448 
+9    7    8    
+
+rank 0 | B:
+1    5    9    
+4    8    3    
+7    2    6    
+
+rank 0 | got a: 6, b: 8
+rank 0 | sending cellA (6) to 5
+rank 0 | sent cellA
+rank 0 | A:
+1    2    3    
+5    6    136469448 
+9    7    8    
+
+rank 0 | B:
+1    5    9    
+4    8    3    
+7    2    6    
+
+rank 0 | sending cellB (8) to 5
+rank 0 | sent cellB
+rank 0 | A:
+1    2    3    
+5    6    136469448 
+9    7    8    
+
+rank 0 | B:
+1    5    9    
+4    8    3    
+7    2    6    
+
+rank 0 | getting data for index 5
+rank 0 | A:
+1    2    3    
+5    6    136469448 
+9    7    8    
+
+rank 0 | B:
+1    5    9    
+4    8    3    
+7    2    6    
+
+rank 0 | got a: 136469448, b: 3
+rank 0 | sending cellA (136469448) to 6
+rank 0 | sent cellA
+rank 0 | A:
+1    2    3    
+5    6    136469448 
+9    7    8    
+
+rank 0 | B:
+1    5    9    
+4    8    3    
+7    2    6    
+
+rank 0 | sending cellB (3) to 6
+rank 0 | sent cellB
+rank 0 | A:
+1    2    3    
+5    6    136469448 
+9    7    8    
+
+rank 0 | B:
+1    5    9    
+4    8    3    
+7    2    6    
+
+rank 0 | getting data for index 6
+rank 0 | A:
+1    2    3    
+5    6    136469448 
+9    7    8    
+
+rank 0 | B:
+1    5    9    
+4    8    3    
+7    2    6    
+
+rank 0 | got a: 9, b: 7
+rank 0 | sending cellA (9) to 7
+rank 0 | sent cellA
+rank 0 | A:
+1    2    3    
+5    6    136469448 
+9    7    8    
+
+rank 0 | B:
+1    5    9    
+4    8    3    
+7    2    6    
+
+rank 0 | sending cellB (7) to 7
+rank 0 | sent cellB
+rank 0 | A:
+1    2    3    
+5    6    136469448 
+9    7    8    
+
+rank 0 | B:
+1    5    9    
+4    8    3    
+7    2    6    
+
+rank 0 | getting data for index 7
+rank 0 | A:
+1    2    3    
+5    6    136rank 4 | received cellA (5)
+rank 4 | receiving cellB
+rank 4 | received cellB (4)
+rank 4 | Cell now is: 20
+rank 4 | receiving cellA
+rank 3 | received cellA (3)
+rank 3 | receiving cellB
+rank 3 | received cellB (9)
+rank 3 | Cell now is: 27
+rank 3 | receiving cellA
+rank 1 | received cellA (1)
+rank 1 | receiving cellB
+rank 1 | received cellB (1)
+rank 1 | Cell now is: 1
+rank 1 | receiving cellA
+rank 2 | received cellA (2)
+rank 2 | receiving cellB
+rank 2 | received cellB (5)
+rank 2 | Cell now is: 10
+rank 2 | receiving cellA
+rank 5 | INIT
+rank 5 | receiving cellA
+rank 5 | received cellA (6)
+rank 5 | receiving cellB
+rank 5 | received cellB (8)
+rank 5 | Cell now is: 48
+rank 5 | receiving cellA
+469448 
+9    7    8    
+
+rank 0 | B:
+1    5    9    
+4    8    3    
+7    2    6    
+
+rank 0 | got a: 7, b: 2
+rank 0 | sending cellA (7) to 8
+rank 0 | sent cellA
+rank 0 | A:
+1    2    3    
+5    6    136469448 
+9    7    8    
+
+rank 0 | B:
+1    5    9    
+4    8    3    
+7    2    6    
+
+rank 0 | sending cellB (2) to 8
+rank 0 | sent cellB
+rank 0 | A:
+1    2    3    
+5    6    136469448 
+9    7    8    
+
+rank 0 | B:
+1    5    9    
+4    8    3    
+7    2    6    
+
+rank 0 | getting data for index 8
+rank 0 | A:
+1    2    3    
+5    6    136469448 
+9    7    8    
+
+rank 0 | B:
+1    5    9    
+4    8    3    
+7    2    6    
+
+rank 0 | got a: 8, b: 6
+rank 0 | sending cellA (8) to 9
+rank 0 | sent cellA
+rank 0 | A:
+1    2    3    
+5    6    136469448 
+9    7    8    
+
+rank 0 | B:
+1    5    9    
+4    8    3    
+7    2    6    
+
+rank 0 | sending cellB (6) to 9
+rank 0 | sent cellB
+rank 0 | A:
+1    2    3    
+5    6    136469448 
+9    7    8    
+
+rank 0 | B:
+1    5    9    
+4    8    3    
+7    2    6    
+
+rank 0 | Shifting matrixes...
+rank 0 | A:
+2    3    1    
+6    136469448 5    
+7    8    9    
+
+rank 0 | B:
+4    8    3    
+7    2    6    
+1    5    9    
+
+rank 0 | getting data for index 0
+rank 0 | A:
+2    3    1    
+6    136469448 5    
+7    8    9    
+
+rank 0 | B:
+4    8    3    
+7    2    6    
+1    5    9    
+
+rank 0 | got a: 2, b: 4
+rank 0 | sending cellA (2) to 1
+rank 0 | sent cellA
+rank 0 | A:
+2    3    1    
+6    136469448 5    
+7    8    9    
+
+rank 0 | B:
+4    8    3    
+7    2    6    
+1    5    9    
+
+rank 0 | sending cellB (4) to 1
+rank 0 | sent cellB
+rank 0 | A:
+2    3    1    
+6    136469448 5    
+7    8    9    
+
+rank 0 | B:
+4    8    3    
+7    2    6    
+1    5    9    
+
+rank 0 | getting data for index 1
+rank 0 | A:
+2    3    1    
+6    136469448 5    
+7    8    9    
+
+rank 0 | B:
+4    8    3    
+7    2    6    
+1    5    9    
+
+rank 0 | got a: 3, b: 8
+rank 0 | sending cellA (3) to 2
+rank 0 | sent cellA
+rank 0 | A:
+2    3    1    
+6    136469448 5    
+7    8    9    
+
+rank 0 | B:
+4    8    3    
+7    2rank 4 | received cellA (6)
+rank 4 | receiving cellB
+rank 4 | received cellB (7)
+rank 4 | Cell now is: 62
+rank 4 | receiving cellA
+rank 2 | received cellA (3)
+rank 2 | receiving cellB
+rank 2 | received cellB (8)
+rank 2 | Cell now is: 34
+rank 2 | receiving cellA
+rank 1 | received cellA (2)
+rank 1 | receiving cellB
+rank 1 | received cellB (4)
+rank 1 | Cell now is: 9
+rank 1 | receiving cellA
+rank 3 | received cellA (1)
+rank 3 | receiving cellB
+rank 3 | received cellB (3)
+rank 3 | Cell now is: 30
+rank 3 | receiving cellA
+rank 5 | received cellA (136469448)
+rank 5 | receiving cellB
+rank 5 | received cellB (2)
+rank 5 | Cell now is: 272938944
+rank 5 | receiving cellA
+    6    
+1    5    9    
+
+rank 0 | sending cellB (8) to 2
+rank 0 | sent cellB
+rank 0 | A:
+2    3    1    
+6    136469448 5    
+7    8    9    
+
+rank 0 | B:
+4    8    3    
+7    2    6    
+1    5    9    
+
+rank 0 | getting data for index 2
+rank 0 | A:
+2    3    1    
+6    136469448 5    
+7    8    9    
+
+rank 0 | B:
+4    8    3    
+7    2    6    
+1    5    9    
+
+rank 0 | got a: 1, b: 3
+rank 0 | sending cellA (1) to 3
+rank 0 | sent cellA
+rank 0 | A:
+2    3    1    
+6    136469448 5    
+7    8    9    
+
+rank 0 | B:
+4    8    3    
+7    2    6    
+1    5    9    
+
+rank 0 | sending cellB (3) to 3
+rank 0 | sent cellB
+rank 0 | A:
+2    3    1    
+6    136469448 5    
+7    8    9    
+
+rank 0 | B:
+4    8    3    
+7    2    6    
+1    5    9    
+
+rank 0 | getting data for index 3
+rank 0 | A:
+2    3    1    
+6    136469448 5    
+7    8    9    
+
+rank 0 | B:
+4    8    3    
+7    2    6    
+1    5    9    
+
+rank 0 | got a: 6, b: 7
+rank 0 | sending cellA (6) to 4
+rank 0 | sent cellA
+rank 0 | A:
+2    3    1    
+6    136469448 5    
+7    8    9    
+
+rank 0 | B:
+4    8    3    
+7    2    6    
+1    5    9    
+
+rank 0 | sending cellB (7) to 4
+rank 0 | sent cellB
+rank 0 | A:
+2    3    1    
+6    136469448 5    
+7    8    9    
+
+rank 0 | B:
+4    8    3    
+7    2    6    
+1    5    9    
+
+rank 0 | getting data for index 4
+rank 0 | A:
+2    3    1    
+6    136469448 5    
+7    8    9    
+
+rank 0 | B:
+4    8    3    
+7    2    6    
+1    5    9    
+
+rank 0 | got a: 136469448, b: 2
+rank 0 | sending cellA (136469448) to 5
+rank 0 | sent cellA
+rank 0 | A:
+2    3    1    
+6    136469448 5    
+7    8    9    
+
+rank 0 | B:
+4    8    3    
+7    2    6    
+1    5    9    
+
+rank 0 | sending cellB (2) to 5
+rank 0 | sent cellB
+rank 0 | A:
+2    3    1    
+6    136469448 5    
+7    8    9    
+
+rank 0 | B:
+4    8    3    
+7    2    6    
+1    5    9    
+
+rank 0 | getting data for index 5
+rank 0 | A:
+2    3    1    
+6    136469448 5    
+7    8    9    
+
+rank 0 | B:
+4    8    3    
+7    2    6    
+1    5    9    
+
+rank 0 | got a: 5, b: 6
+rank 0 | serank 2 | received cellA (1)
+rank 2 | receiving cellB
+rank 2 | received cellB (2)
+rank 2 | Cell now is: 36
+rank 3 | received cellA (2)
+rank 3 | receiving cellB
+rank 3 | received cellB (6)
+rank 3 | Cell now is: 42
+rank 4 | received cellA (136469448)
+rank 4 | receiving cellB
+rank 1 | received cellA (3)
+rank 1 | receiving cellB
+rank 1 | received cellB (7)
+rank 1 | Cell now is: 30
+nding cellA (5) to 6
+rank 0 | sent cellA
+rank 0 | A:
+2    3    1    
+6    136469448 5    
+7    8    9    
+
+rank 0 | B:
+4    8    3    
+7    2    6    
+1    5    9    
+
+rank 0 | sending cellB (6) to 6
+rank 0 | sent cellB
+rank 0 | A:
+2    3    1    
+6    136469448 5    
+7    8    9    
+
+rank 0 | B:
+4    8    3    
+7    2    6    
+1    5    9    
+
+rank 0 | getting data for index 6
+rank 0 | A:
+2    3    1    
+6    136469448 5    
+7    8    9    
+
+rank 0 | B:
+4    8    3    
+7    2    6    
+1    5    9    
+
+rank 0 | got a: 7, b: 1
+rank 0 | sending cellA (7) to 7
+rank 0 | sent cellA
+rank 0 | A:
+2    3    1    
+6    136469448 5    
+7    8    9    
+
+rank 0 | B:
+4    8    3    
+7    2    6    
+1    5    9    
+
+rank 0 | sending cellB (1) to 7
+rank 0 | sent cellB
+rank 0 | A:
+2    3    1    
+6    136469448 5    
+7    8    9    
+
+rank 0 | B:
+4    8    3    
+7    2    6    
+1    5    9    
+
+rank 0 | getting data for index 7
+rank 0 | A:
+2    3    1    
+6    136469448 5    
+7    8    9    
+
+rank 0 | B:
+4    8    3    
+7    2    6    
+1    5    9    
+
+rank 0 | got a: 8, b: 5
+rank 0 | sending cellA (8) to 8
+rank 0 | sent cellA
+rank 0 | A:
+2    3    1    
+6    136469448 5    
+7    8    9    
+
+rank 0 | B:
+4    8    3    
+7    2    6    
+1    5    9    
+
+rank 0 | sending cellB (5) to 8
+rank 0 | sent cellB
+rank 0 | A:
+2    3    1    
+6    136469448 5    
+7    8    9    
+
+rank 0 | B:
+4    8    3    
+7    2    6    
+1    5    9    
+
+rank 0 | getting data for index 8
+rank 0 | A:
+2    3    1    
+6    136469448 5    
+7    8    9    
+
+rank 0 | B:
+4    8    3    
+7    2    6    
+1    5    9    
+
+rank 0 | got a: 9, b: 9
+rank 0 | sending cellA (9) to 9
+rank 0 | sent cellA
+rank 0 | A:
+2    3    1    
+6    136469448 5    
+7    8    9    
+
+rank 0 | B:
+4    8    3    
+7    2    6    
+1    5    9    
+
+rank 0 | sending cellB (9) to 9
+rank 0 | sent cellB
+rank 0 | A:
+2    3    1    
+6    136469448 5    
+7    8    9    
+
+rank 0 | B:
+4    8    3    
+7    2    6    
+1    5    9    
+
+rank 0 | Shifting matrixes...
+rank 0 | A:
+3    1    2    
+136469448 5    6    
+8    9    7    
+
+rank 0 | B:
+7    2    6    
+1    5    9    
+4    8    3    
+
+rank 0 | getting data for index 0
+rank 0 | A:
+3    1    2    
+136469448 5    6    
+8    9    7    
+
+rank 0 | B:
+7    2    6    
+1    5    9    
+4    8    3    
+
+rank 0 | got a: 3, b: 7
+rank 0 | sending cellA (3) to 1
+rank 0 | sent cellA
+rank 0 | A:
+3    1    2    
+136469448 5    6    
+8    9    7    
+
+rank 0 | B:
+7    2    6    
+1    5    9    
+4    8    3    
+
+rank 0 | sending cellB (7) to 1
+rank 0 | sent cellB
+rank 0 | A:
+3    1    2    
+136469448 5    6    
+8    9    7    
+
+rank 0 | B:
+7    2    6    
+1    5    9    
+4    8    3    
+
+rank 0 | getting data for index 1
+rank 0 | A:
+3    1    2    
+136469448 5    6    
+8    9    7    
+
+rank 0 | B:
+7    2    6    
+1    5    9    
+4    8    3    
+
+rank 0 | got a: 1, b: 2
+rank 0 | sending cellA (1) to 2
+rank 0 | sent cellA
+rank 0 | A:
+3    1    2    
+136469448 5    6    
+8    9    7    
+
+rank 0 | B:
+7    2    6    
+1    5    9    
+4    8    3    
+
+rank 0 | sending cellB (2) to 2
+rank 0 | sent cellB
+rank 0 | A:
+3    1    2    
+136469448 5    6    
+8    9    7    
+
+rank 0 | B:
+7    2    6    
+1    5    9    
+4    8    3    
+
+rank 0 | getting data for index 2
+rank 0 | A:
+3    1    2    
+136469448 5    6    
+8    9    7    
+
+rank 0 | B:
+7    2    6    
+1    5    9    
+4    8    3    
+
+rank 0 | got a: 2, b: 6
+rank 0 | sending cellA (2) to 3
+rank 0 | sent cellA
+rank 0 | A:
+3    1    2    
+136469448 5    6    
+8    9    7    
+
+rank 0 | B:
+7    2    6    
+1    5    9    
+4    8    3    
+
+rank 0 | sending cellB (6) to 3
+rank 0 | sent cellB
+rank 0 | A:
+3    1    2    
+136469448 5    6    
+8    9    7    
+
+rank 0 | B:
+7    2    6    
+1    5    9    
+4    8    3    
+
+rank 0 | getting data for index 3
+rank 0 | A:
+3    1    2    
+136469448 5    6    
+8    9    7    
+
+rank 0 | B:
+7    2    6    
+1    5    9    
+4    8    3    
+
+rank 0 | got a: 136469448, b: 1
+rank 0 | sending cellA (136469448) to 4
+rank 0 | sent cellA
+rank 0 | A:
+3    1    2    
+136469448 5    6    
+8    9    7    
+
+rank 0 | B:
+7 rank 5 | received cellA (5)
+rank 5 | receiving cellB
+rank 5 | received cellB (5)
+rank 5 | Cell now is: 272938969
+rank 4 | received cellB (1)
+rank 4 | Cell now is: 136469510
+   2    6    
+1    5    9    
+4    8    3    
+
+rank 0 | sending cellB (1) to 4
+rank 0 | sent cellB
+rank 0 | A:
+3    1    2    
+136469448 5    6    
+8    9    7    
+
+rank 0 | B:
+7    2    6    
+1    5    9    
+4    8    3    
+
+rank 0 | getting data for index 4
+rank 0 | A:
+3    1    2    
+136469448 5    6    
+8    9    7    
+
+rank 0 | B:
+7    2    6    
+1    5    9    
+4    8    3    
+
+rank 0 | got a: 5, b: 5
+rank 0 | sending cellA (5) to 5
+rank 0 | sent cellA
+rank 0 | A:
+3    1    2    
+136469448 5    6    
+8    9    7    
+
+rank 0 | B:
+7    2    6    
+1    5    9    
+4    8    3    
+
+rank 0 | sending cellB (5) to 5
+rank 0 | sent cellB
+rank 0 | A:
+3    1    2    
+136469448 5    6    
+8    9    7    
+
+rank 0 | B:
+7    2    6    
+1    5    9    
+4    8    3    
+
+rank 0 | getting data for index 5
+rank 0 | A:
+3    1    2    
+136469448 5    6    
+8    9    7    
+
+rank 0 | B:
+7    2    6    
+1    5    9    
+4    8    3    
+
+rank 0 | got a: 6, b: 9
+rank 0 | sending cellA (6) to 6
+rank 0 | sent cellA
+rank 0 | A:
+3    1    2    
+136469448 5    6    
+8    9    7    
+
+rank 0 | B:
+7    2    6    
+1    5    9    
+4    8    3    
+
+rank 0 | sending cellB (9) to 6
+rank 0 | sent cellB
+rank 0 | A:
+3    1    2    
+136469448 5    6    
+8    9    7    
+
+rank 0 | B:
+7    2    6    
+1    5    9    
+4    8    3    
+
+rank 0 | getting data for index 6
+rank 0 | A:
+3    1    2    
+136469448 5    6    
+8    9    7    
+
+rank 0 | B:
+7    2    6    
+1    5    9    
+4    8    3    
+
+rank 0 | got a: 8, b: 4
+rank 0 | sending cellA (8) to 7
+rank 0 | sent cellA
+rank 0 | A:
+3    1    2    
+136469448 5    6    
+8    9    7    
+
+rank 0 | B:
+7    2    6    
+1    5    9    
+4    8    3    
+
+rank 0 | sending cellB (4) to 7
+rank 0 | sent cellB
+rank 0 | A:
+3    1    2    
+136469448 5    6    
+8    9    7    
+
+rank 0 | B:
+7    2    6    
+1    5    9    
+4    8    3    
+
+rank 0 | getting data for index 7
+rank 0 | A:
+3    1    2    
+136469448 5    6    
+8    9    7    
+
+rank 0 | B:
+7    2    6    
+1    5    9    
+4    8    3    
+
+rank 0 | got a: 9, b: 8
+rank 0 |rank 6 | INIT
+rank 6 | receiving cellA
+rank 6 | received cellA (136469448)
+rank 6 | receiving cellB
+rank 6 | received cellB (3)
+rank 6 | Cell now is: 409408344
+rank 6 | receiving cellA
+rank 6 | received cellA (5)
+rank 6 | receiving cellB
+rank 6 | received cellB (6)
+rank 6 | Cell now is: 409408374
+rank 6 | receiving cellA
+rank 6 | received cellA (6)
+rank 6 | receiving cellB
+rank 6 | received cellB (9)
+rank 6 | Cell now is: 409408428
+ sending cellA (9) to 8
+rank 0 | sent cellA
+rank 0 | A:
+3    1    2    
+136469448 5    6    
+8    9    7    
+
+rank 0 | B:
+7    2    6    
+1    5    9    
+4    8    3    
+
+rank 0 | sending cellB (8) to 8
+rank 0 | sent cellB
+rank 0 | A:
+3    1    2    
+136469448 5    6    
+8    9    7    
+
+rank 0 | B:
+7    2    6    
+1    5    9    
+4    8    3    
+
+rank 0 | getting data for index 8
+rank 0 | A:
+3    1    2    
+136469448 5    6    
+8    9    7    
+
+rank 0 | B:
+7    2    6    
+1    5    9    
+4    8    3    
+
+rank 0 | got a: 7, b: 3
+rank 0 | sending cellA (7) to 9
+rank 0 | sent cellA
+rank 0 | A:
+3    1    2    
+136469448 5    6    
+8    9    7    
+
+rank 0 | B:
+7    2    6    
+1    5    9    
+4    8    3    
+
+rank 0 | sending cellB (3) to 9
+rank 0 | sent cellB
+rank 0 | A:
+3    1    2    
+136469448 5    6    
+8    9    7    
+
+rank 0 | B:
+7    2    6    
+1    5    9    
+4    8    3    
+
+rank 0 | Shifting matrixes...
+rank 0 | A:
+1    2    3    
+5    6    136469448 
+9    7    8    
+
+rank 0 | B:
+1    5    9    
+4    8    3    
+7    2    6    
+
+rank 7 | INIT
+rank 7 | receiving cellA
+rank 7 | received cellA (9)
+rank 7 | receiving cellB
+rank 7 | received cellB (7)
+rank 7 | Cell now is: 63
+rank 7 | receiving cellA
+rank 7 | received cellA (7)
+rank 7 | receiving cellB
+rank 7 | received cellB (1)
+rank 7 | Cell now is: 70
+rank 7 | receiving cellA
+rank 7 | received cellA (8)
+rank 7 | receiving cellB
+rank 7 | received cellB (4)
+rank 7 | Cell now is: 102
+rank 8 | INIT
+rank 8 | receiving cellA
+rank 8 | received cellA (7)
+rank 8 | receiving cellB
+rank 8 | received cellB (2)
+rank 8 | Cell now is: 14
+rank 8 | receiving cellA
+rank 8 | received cellA (8)
+rank 8 | receiving cellB
+rank 8 | received cellB (5)
+rank 8 | Cell now is: 54
+rank 8 | receiving cellA
+rank 8 | received cellA (9)
+rank 8 | receiving cellB
+rank 8 | received cellB (8)
+rank 8 | Cell now is: 126
+rank 9 | INIT
+rank 9 | receiving cellA
+rank 9 | received cellA (8)
+rank 9 | receiving cellB
+rank 9 | received cellB (6)
+rank 9 | Cell now is: 48
+rank 9 | receiving cellA
+rank 9 | received cellA (9)
+rank 9 | receiving cellB
+rank 9 | received cellB (9)
+rank 9 | Cell now is: 129
+rank 9 | receiving cellA
+rank 9 | received cellA (7)
+rank 9 | receiving cellB
+rank 9 | received cellB (3)
+rank 9 | Cell now is: 150
+Expected:
+30   36   42   
+66   81   96   
+102  126  150  
+
+Got:
+30   36   42   
+136469510 272938969 409408428 
+102  126  150  
+
+[arturas-desktop:28495] *** Process received signal ***
+[arturas-desktop:28495] Signal: Segmentation fault (11)
+[arturas-desktop:28495] Signal code: Address not mapped (1)
+[arturas-desktop:28495] Failing at address: 0x5d
+[arturas-desktop:28495] [ 0] [0xb7fa7440]
+[arturas-desktop:28495] [ 1] /usr/lib/libopen-pal.so.0(malloc+0x92) [0xb7e77172]
+[arturas-desktop:28495] [ 2] /usr/lib/libopen-rte.so.0(orte_dss_buffer_extend+0xc2) [0xb7eb9c02]
+[arturas-desktop:28495] [ 3] /usr/lib/libopen-rte.so.0(orte_dss_pack_int32+0x30) [0xb7ebb440]
+[arturas-desktop:28495] [ 4] /usr/lib/libopen-rte.so.0(orte_dss_pack_buffer+0x57) [0xb7ebb707]
+[arturas-desktop:28495] [ 5] /usr/lib/libopen-rte.so.0(orte_dss_pack_std_cntr+0x38) [0xb7ebb9c8]
+[arturas-desktop:28495] [ 6] /usr/lib/libopen-rte.so.0(orte_dss_pack+0x51) [0xb7ebbef1]
+[arturas-desktop:28495] [ 7] /usr/lib/libopen-rte.so.0(orte_gpr_base_pack_increment_value+0x44) [0xb7eca0c4]
+[arturas-desktop:28495] [ 8] /usr/lib/openmpi/lib/openmpi/mca_gpr_proxy.so(orte_gpr_proxy_increment_value+0xae) [0xb7b507be]
+[arturas-desktop:28495] [ 9] /usr/lib/libopen-rte.so.0(orte_smr_base_set_proc_state+0x497) [0xb7ee96f7]
+[arturas-desktop:28495] [10] /usr/lib/libmpi.so.0(ompi_mpi_finalize+0x142) [0xb7f2a842]
+[arturas-desktop:28495] [11] /usr/lib/libmpi.so.0(PMPI_Finalize+0x56) [0xb7f487d6]
+[arturas-desktop:28495] [12] dist/app(_ZN3MPI8FinalizeEv+0x10) [0x8054510]
+[arturas-desktop:28495] [13] dist/app(main+0xe82) [0x8050ba2]
+[arturas-desktop:28495] [14] /lib/tls/i686/cmov/libc.so.6(__libc_start_main+0xe0) [0xb7bb6450]
+[arturas-desktop:28495] [15] dist/app(__gxx_personality_v0+0x105) [0x804fb41]
+[arturas-desktop:28495] *** End of error message ***
+mpirun noticed that job rank 0 with PID 28495 on node arturas-desktop exited on signal 11 (Segmentation fault). 
+9 additional processes aborted (not shown)
