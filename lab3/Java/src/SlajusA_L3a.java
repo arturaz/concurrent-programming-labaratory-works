@@ -139,6 +139,7 @@ class App {
         }
     }
     
+    // Notify, that producer is finished
     static public void producerFinished() throws InterruptedException {
         data.producerFinished();
         // Kick consumers out of deadlock.
@@ -166,6 +167,7 @@ abstract class Record {
     }
 }
 
+// Abstract class for record lists.
 abstract class RecordList implements Runnable {
     protected int number;
 
