@@ -1,6 +1,9 @@
 #define debug_on true
 #define ifdebug if (debug_on) 
 #define debug ifdebug cout << "rank " << rank << " | "
+#define TAG_RESULT 0
+#define TAG_A 1
+#define TAG_B 2
 
 #include <iostream>
 #include <fstream>
@@ -111,7 +114,7 @@ private:
   }
 }; // }}}
 
-int main() {
+int main(int argc, char** argv) {
   int dataA[] = {
     1,2,3,
     4,5,6,
@@ -132,7 +135,7 @@ int main() {
   int size = length * length;
 
   // Start parallel.
-  MPI::Init();
+  MPI_Init(&argc, &argv);
 
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -184,7 +187,7 @@ int main() {
         debug << "got a: " << cellA << ", b: " << cellB << endl;
 
         debug << "sending cellA (" << cellA << ") to " << sendTo << endl;
-        MPI::COMM_WORLD.Send(&cellA, 1, MPI::INT, sendTo, 1);
+        MPI_Send(&cellA, 1, MPI_INT, sendTo, TAG_A, MPI_COMM_WORLD);
         debug << "sent cellA" << endl;
 
         ifdebug {
@@ -195,7 +198,7 @@ int main() {
         }
 
         debug << "sending cellB (" << cellB << ") to " << sendTo << endl;
-        MPI::COMM_WORLD.Send(&cellB, 1, MPI::INT, sendTo, 2);
+        MPI_Send(&cellB, 1, MPI_INT, sendTo, TAG_B, MPI_COMM_WORLD);
         debug << "sent cellB" << endl;
         
         ifdebug {
@@ -219,9 +222,10 @@ int main() {
     }
 
     // Receive all results from processes and set the results.
+    MPI_Status stat;
     for (int index = 0; index < size; index++) {
       int cell = 0;
-      MPI::COMM_WORLD.Recv(&cell, 1, MPI::INT, index + 1, 0);
+      MPI_Recv(&cell, 1, MPI_INT, index + 1, TAG_RESULT, MPI_COMM_WORLD, &stat);
       res.set(index, cell);
     }
 
@@ -235,14 +239,15 @@ int main() {
     int cell = 0;
 
     // Wait for all data and sum it into cell.
+    MPI_Status stat;
     for (int shift = 0; shift < length; shift++) {
       int a, b;
       debug << "receiving cellA" << endl;
-      MPI::COMM_WORLD.Recv(&a, 1, MPI::INT, 0, 1);
+      MPI_Recv(&a, 1, MPI_INT, 0, TAG_A, MPI_COMM_WORLD, &stat);
       debug << "received cellA (" << a << ")" << endl;
 
       debug << "receiving cellB" << endl;
-      MPI::COMM_WORLD.Recv(&b, 1, MPI::INT, 0, 2);
+      MPI_Recv(&b, 1, MPI_INT, 0, TAG_B, MPI_COMM_WORLD, &stat);
       debug << "received cellB (" << b << ")" << endl;
 
       cell += a * b;
@@ -250,8 +255,8 @@ int main() {
     }
 
     // Send back the result.
-    MPI::COMM_WORLD.Send(&cell, 1, MPI::INT, 0, 0);
+    MPI_Send(&cell, 1, MPI_INT, 0, TAG_RESULT, MPI_COMM_WORLD);
   }
 
-  MPI::Finalize();
+  MPI_Finalize();
 }
