@@ -10,6 +10,7 @@ import org.jcsp.lang.Alternative;
 import org.jcsp.lang.AltingChannelInput;
 import org.jcsp.lang.AltingChannelOutput;
 import org.jcsp.lang.CSProcess;
+import org.jcsp.lang.CSTimer;
 import org.jcsp.lang.Channel;
 import org.jcsp.lang.ChannelInput;
 import org.jcsp.lang.ChannelOutput;
@@ -67,7 +68,11 @@ class CCPool {
             new ArrayList<CommunicationChannel>();
     
     void extend(Collection<CommunicationChannel> collection) {
-        pool.addAll(pool);
+        App.debug("Extending comm channels from collection (size: " + 
+                collection.size() + "). Current pool size: " + pool.size());
+        pool.addAll(collection);
+        App.debug("Extended comm channels from collection (size: " + 
+                collection.size() + "). Current pool size: " + pool.size());
     }
     
     int getTypeByIndex(int index) {
@@ -78,13 +83,15 @@ class CCPool {
         return pool.get(index);
     }
 
-    Guard[] getGuard() {
+    Guard[] getGuards() {
+        App.debug("Generating guards, pool size: " + pool.size());
         Guard[] guard = new Guard[pool.size()];
         int i = 0;
         for (CommunicationChannel c: pool) {
             guard[i] = c.in();
             i++;
         }
+
         return guard;
     }
 }
@@ -106,7 +113,7 @@ class CommunicationChannel {
     CommunicationChannel(int type) {
         // Create channel of immunity 0.
         // (fcking nerds that made this package. Feels like MMO)
-        this.channel = Channel.one2one(0);
+        this.channel = Channel.one2one();
         this.in = channel.in();
         this.out = channel.out();
         this.type = type;
@@ -140,21 +147,27 @@ class CommunicationChannel {
     }
     
     public void write(int type, Object data) {
+        App.debug("Writing packet to channel (type: " + type + ")");
         out.write(new Packet(type, data));
+        App.debug("Written packet to channel (type: " + type + ")");
+    }
+    
+    void write(int type) {
+        write(type, 0);
     }
 
     Packet read() {
         return (Packet) in.read();
     }
 }
-class App {    
+class App {
     /**
      * Number of threads.
      */
     public static int producerCount = 2;
     public static int consumerCount = 3;
     
-    OrderedArray storage = new OrderedArray();
+    Storage storage = new Storage();
     Producer[] producers = new Producer[producerCount];
     Consumer[] consumers = new Consumer[consumerCount];
     static double startTime = System.currentTimeMillis();
@@ -162,9 +175,9 @@ class App {
 
     public App(String inputFilename) throws IOException {
         readData(inputFilename);
-        processes.addProcess(storage);
         printData();
         
+        processes.addProcess(storage);
         processes.run();
         
         System.out.println("Bendras masyvas:");
@@ -387,9 +400,10 @@ class Book extends Record implements Comparable<Book> {
  */
 class Packet {
     public final static int PRODUCER_DONE = 1;
-    public final static int DATA = 2;
+    public final static int BOOK = 2;
     public final static int GET_PRODUCERS_LEFT = 3;
     public final static int CONSUMER_DONE = 4;
+    public final static int FILTER = 5;
 
     private int type;
     private Object data;
@@ -443,12 +457,17 @@ class Producer extends RecordList {
     }        
 
     public void run() {
+        Thread.currentThread().setName("Papildyti" + number);
+        
+        App.debug("Iterating through books");
         for (Book book: data) {
             App.debug("[Producing] " + book.toString());
-            channel.out().write(new Packet(Packet.DATA, book));
+            channel.write(Packet.BOOK, book);
             App.debug("[Produced] " + book.toString());
         }
+        App.debug("Signaling that producer is done.");
         channel.write(Packet.PRODUCER_DONE, "Producer done.");
+        App.debug("Exiting.");
     }
 }
 /**
@@ -533,12 +552,13 @@ class Consumer extends RecordList {
     }
 
     public void run() {
+        Thread.currentThread().setName("Vartoti" + number);
         boolean canFinishNextLoop = false;
         while (true) {
             for (Filter filter: data) {
                 if (! filter.isExausted()) {
                     App.debug("[trying to consume] " + filter.toString());
-                    Packet p = channel.query(Packet.DATA, filter);
+                    Packet p = channel.query(Packet.FILTER, filter);
                     Book book = (Book) p.getData();
                     App.debug("[GOT] " + book);
                     if (book != null) {
@@ -547,12 +567,17 @@ class Consumer extends RecordList {
                 }
             }
             
+            App.debug("Getting how many producers are left.");
             Packet p = channel.query(Packet.GET_PRODUCERS_LEFT);
+            App.debug("Got producers left: " + p.getData());
             if ((Integer) p.getData() == 0) {
                 // Ensure that all possible data is consumed by having 2 
                 // iterations when all consumers are done.
-                if (canFinishNextLoop)
+                if (canFinishNextLoop) {
+                    App.debug("Messaging that consumer finished.");
+                    channel.write(Packet.CONSUMER_DONE);
                     return;
+                }
                 canFinishNextLoop = true;
             }
         }
@@ -562,7 +587,7 @@ class Consumer extends RecordList {
 /**
  * Bendras sutvarkytas masyvas, kurį naudos abi klasės.
  */
-class OrderedArray implements CSProcess {
+class Storage implements CSProcess {
     private ArrayList<Book> data = new ArrayList<Book>();
     private ArrayList<CommunicationChannel> producerChannels = 
             new ArrayList<CommunicationChannel>();
@@ -688,47 +713,67 @@ class OrderedArray implements CSProcess {
         }
     }
 
-    public void run() {
+    public void run() {        
+        Thread.currentThread().setName("Saugykla");
         CCPool pool = new CCPool();
         pool.extend(producerChannels);
         pool.extend(consumerChannels);
         
-        Alternative alt = new Alternative(pool.getGuard());
+        Guard[] guards = pool.getGuards();
+        App.debug("Guards size: " + guards.length);
+        for (Guard g: guards)
+            App.debug("Guard " + g.toString());
+        
+        Alternative alt = new Alternative(guards);
         int producersRunning = producerChannels.size();
         int consumersRunning = consumerChannels.size();
-        while (producersRunning > 0 && consumersRunning > 0) {
+        App.debug("Entering main loop (prods: " + producersRunning + ", cons: "
+                + consumersRunning + ")");
+        while (producersRunning > 0 || consumersRunning > 0) {
+            App.debug("Selecting channel...");
             int index = alt.fairSelect();
+            App.debug("Selected channel " + index);
             
             CommunicationChannel chan = pool.get(index);
             Packet p = chan.read();
             
             switch (pool.getTypeByIndex(index)) {
                 case CommunicationChannel.PRODUCER:
+                    App.debug("Message by producer.");
                     switch (p.getType()) {
-                        case Packet.DATA:
+                        case Packet.BOOK:
+                            App.debug("DATA.");
                             produce((Book) p.getData());
                             break;
                         case Packet.PRODUCER_DONE:
+                            App.debug("Producer finished.");
                             producersRunning--;
                             break;
                     }
                     break;
                     
                 case CommunicationChannel.CONSUMER:
+                    App.debug("Message by consumer.");
                     switch(p.getType()) {
-                        case Packet.DATA:
-                            consume((Filter) p.getData());
+                        case Packet.FILTER:
+                            App.debug("DATA.");
+                            Book b = consume((Filter) p.getData());
+                            chan.write(Packet.BOOK, b);
                             break;
                         case Packet.GET_PRODUCERS_LEFT:
+                            App.debug("Get producers left.");
                             chan.write(Packet.GET_PRODUCERS_LEFT, producersRunning);
                             break;
                         case Packet.CONSUMER_DONE:
                             consumersRunning--;
+                            App.debug("Received msg that consumer finished " +
+                                    "(left: " + consumersRunning + ")");
                             break;
                     }
                     break;
             }
         }
+        App.debug("Finished main loop.");
     }
 }
     
