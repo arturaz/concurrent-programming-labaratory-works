@@ -8,12 +8,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import org.jcsp.lang.Alternative;
 import org.jcsp.lang.AltingChannelInput;
+import org.jcsp.lang.Any2OneChannel;
 import org.jcsp.lang.CSProcess;
 import org.jcsp.lang.Channel;
-import org.jcsp.lang.ChannelOutput;
 import org.jcsp.lang.Guard;
-import org.jcsp.lang.One2OneChannel;
 import org.jcsp.lang.Parallel;
+import org.jcsp.lang.SharedChannelOutput;
 
 /**
  * 2-4 lab. darbuose iš masyvuose S1(k1), S2(k2), ..., Sn(kn) surašytų duomenų 
@@ -46,15 +46,17 @@ public class SlajusA_L4b {
      */    
     public static void main(String[] args) throws IOException {
         if (args.length == 1)
-            new SlajusA_L4a(args[0]);
+            new SlajusA_L4b(args[0]);
         else
-            new SlajusA_L4a("SlajusA.txt");
+            new SlajusA_L4b("SlajusA.txt");
     }
 
-    public SlajusA_L4a(String fileName) throws IOException {
+    public SlajusA_L4b(String fileName) throws IOException {
         new App(fileName);
     }
 }
+
+
 
 /**
  * Class for simplyfying communication means of alternating channels.
@@ -63,6 +65,7 @@ public class SlajusA_L4b {
 class CCPool {
     private ArrayList<CommunicationChannel> pool = 
             new ArrayList<CommunicationChannel>();
+    private boolean[] preConditions;
     
     void extend(Collection<CommunicationChannel> collection) {
         App.debug("Extending comm channels from collection (size: " + 
@@ -79,6 +82,14 @@ class CCPool {
     CommunicationChannel get(int index) {
         return pool.get(index);
     }
+    
+    boolean isProducer(int index) {
+        return pool.get(index).getType() == CommunicationChannel.PRODUCER;
+    }
+    
+    boolean isConsumer(int index) {
+        return pool.get(index).getType() == CommunicationChannel.CONSUMER;
+    }
 
     Guard[] getGuards() {
         App.debug("Generating guards, pool size: " + pool.size());
@@ -88,29 +99,41 @@ class CCPool {
             guard[i] = c.in();
             i++;
         }
+        
+        preConditions = new boolean[pool.size()];
+        for (i = 0; i < preConditions.length; i++) {
+            preConditions[i] = isProducer(i);
+        }
 
         return guard;
     }
+    
+    boolean[] getPreConditions() {        
+        return preConditions;
+    }
+
+    void setConsumerPreConditions(boolean value) {
+        for (int i = 0; i < preConditions.length; i++) {
+            if (isConsumer(i))
+                preConditions[i] = value;
+        }
+    }
 }
-
-
 /**
  * Two way communication channel.
  * @author Artūras
  */
 class CommunicationChannel {
-    private One2OneChannel channel;
+    private Any2OneChannel channel;
     private AltingChannelInput in;
-    private ChannelOutput out;
+    private SharedChannelOutput out;
     private int type;
     
     public final static int PRODUCER = 1;
     public final static int CONSUMER = 2;
     
-    CommunicationChannel(int type) {
-        // Create channel of immunity 0.
-        // (fcking nerds that made this package. Feels like MMO)
-        this.channel = Channel.one2one();
+    CommunicationChannel(int type) {  
+        this.channel = Channel.any2one();
         this.in = channel.in();
         this.out = channel.out();
         this.type = type;
@@ -120,7 +143,7 @@ class CommunicationChannel {
         return in;
     }
     
-    ChannelOutput out() {
+    SharedChannelOutput out() {
         return out;
     }
 
@@ -221,12 +244,12 @@ class App {
         }
 
         // Create producers/consumers
-        CommunicationChannel c;
+        CommunicationChannel c = 
+                new CommunicationChannel(CommunicationChannel.PRODUCER);
         for (int i = 0; i < producerCount; i++) {
-            c = new CommunicationChannel(CommunicationChannel.PRODUCER);
             producers[i] = new Producer(in, i, c);
-            storage.addProducerChannel(c);
-        }
+        }        
+        storage.addProducerChannel(c);
         processes.addProcess(producers);
         
         for (int i = 0; i < consumerCount; i++) {
@@ -722,13 +745,13 @@ class Storage implements CSProcess {
             App.debug("Guard " + g.toString());
         
         Alternative alt = new Alternative(guards);
-        int producersRunning = producerChannels.size();
-        int consumersRunning = consumerChannels.size();
+        int producersRunning = App.producerCount;
+        int consumersRunning = App.consumerCount;
         App.debug("Entering main loop (prods: " + producersRunning + ", cons: "
                 + consumersRunning + ")");
         while (producersRunning > 0 || consumersRunning > 0) {
             App.debug("Selecting channel...");
-            int index = alt.fairSelect();
+            int index = alt.fairSelect(pool.getPreConditions());
             App.debug("Selected channel " + index);
             
             CommunicationChannel chan = pool.get(index);
@@ -741,10 +764,13 @@ class Storage implements CSProcess {
                         case Packet.BOOK:
                             App.debug("DATA.");
                             produce((Book) p.getData());
+                            if (data.size() > 0)
+                                pool.setConsumerPreConditions(true);
                             break;
                         case Packet.PRODUCER_DONE:
                             App.debug("Producer finished.");
                             producersRunning--;
+                            pool.setConsumerPreConditions(true);
                             break;
                     }
                     break;
@@ -755,6 +781,8 @@ class Storage implements CSProcess {
                         case Packet.FILTER:
                             App.debug("DATA.");
                             Book b = consume((Filter) p.getData());
+                            if (data.size() == 0)
+                                pool.setConsumerPreConditions(false);
                             chan.write(Packet.BOOK, b);
                             break;
                         case Packet.GET_PRODUCERS_LEFT:
@@ -773,4 +801,3 @@ class Storage implements CSProcess {
         App.debug("Finished main loop.");
     }
 }
-    
