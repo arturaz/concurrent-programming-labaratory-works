@@ -8,11 +8,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import org.jcsp.lang.Alternative;
 import org.jcsp.lang.AltingChannelInput;
-import org.jcsp.lang.AltingChannelOutput;
 import org.jcsp.lang.CSProcess;
-import org.jcsp.lang.CSTimer;
 import org.jcsp.lang.Channel;
-import org.jcsp.lang.ChannelInput;
 import org.jcsp.lang.ChannelOutput;
 import org.jcsp.lang.Guard;
 import org.jcsp.lang.One2OneChannel;
@@ -59,6 +56,8 @@ public class SlajusA_L4a {
     }
 }
 
+
+
 /**
  * Class for simplyfying communication means of alternating channels.
  * @author Artūras
@@ -66,6 +65,7 @@ public class SlajusA_L4a {
 class CCPool {
     private ArrayList<CommunicationChannel> pool = 
             new ArrayList<CommunicationChannel>();
+    private boolean[] preConditions;
     
     void extend(Collection<CommunicationChannel> collection) {
         App.debug("Extending comm channels from collection (size: " + 
@@ -82,6 +82,14 @@ class CCPool {
     CommunicationChannel get(int index) {
         return pool.get(index);
     }
+    
+    boolean isProducer(int index) {
+        return pool.get(index).getType() == CommunicationChannel.PRODUCER;
+    }
+    
+    boolean isConsumer(int index) {
+        return pool.get(index).getType() == CommunicationChannel.CONSUMER;
+    }
 
     Guard[] getGuards() {
         App.debug("Generating guards, pool size: " + pool.size());
@@ -91,12 +99,26 @@ class CCPool {
             guard[i] = c.in();
             i++;
         }
+        
+        preConditions = new boolean[pool.size()];
+        for (i = 0; i < preConditions.length; i++) {
+            preConditions[i] = isProducer(i);
+        }
 
         return guard;
     }
+    
+    boolean[] getPreConditions() {        
+        return preConditions;
+    }
+
+    void setConsumerPreConditions(boolean value) {
+        for (int i = 0; i < preConditions.length; i++) {
+            if (isConsumer(i))
+                preConditions[i] = value;
+        }
+    }
 }
-
-
 /**
  * Two way communication channel.
  * @author Artūras
@@ -731,7 +753,7 @@ class Storage implements CSProcess {
                 + consumersRunning + ")");
         while (producersRunning > 0 || consumersRunning > 0) {
             App.debug("Selecting channel...");
-            int index = alt.fairSelect();
+            int index = alt.fairSelect(pool.getPreConditions());
             App.debug("Selected channel " + index);
             
             CommunicationChannel chan = pool.get(index);
@@ -744,10 +766,13 @@ class Storage implements CSProcess {
                         case Packet.BOOK:
                             App.debug("DATA.");
                             produce((Book) p.getData());
+                            if (data.size() > 0)
+                                pool.setConsumerPreConditions(true);
                             break;
                         case Packet.PRODUCER_DONE:
                             App.debug("Producer finished.");
                             producersRunning--;
+                            pool.setConsumerPreConditions(true);
                             break;
                     }
                     break;
@@ -758,6 +783,8 @@ class Storage implements CSProcess {
                         case Packet.FILTER:
                             App.debug("DATA.");
                             Book b = consume((Filter) p.getData());
+                            if (data.size() == 0)
+                                pool.setConsumerPreConditions(false);
                             chan.write(Packet.BOOK, b);
                             break;
                         case Packet.GET_PRODUCERS_LEFT:
