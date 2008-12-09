@@ -74,6 +74,16 @@ class CCPool {
         App.debug("Extended comm channels from collection (size: " + 
                 collection.size() + "). Current pool size: " + pool.size());
     }
+
+    String getPreConditionsString() {
+        String s = "";
+        int i = 0;
+        for (boolean b: preConditions) {
+            s += String.format("%d: %-5s ", i, b);
+            i += 1;
+        }
+        return s;
+    }
     
     int getTypeByIndex(int index) {
         return pool.get(index).getType();
@@ -106,6 +116,13 @@ class CCPool {
         }
 
         return guard;
+    }
+    
+    
+    boolean[] getPreConditions(int producerCount) {
+        if (producerCount == 0)
+            setConsumerPreConditions(true);
+        return getPreConditions();
     }
     
     boolean[] getPreConditions() {        
@@ -747,11 +764,12 @@ class Storage implements CSProcess {
         Alternative alt = new Alternative(guards);
         int producersRunning = App.producerCount;
         int consumersRunning = App.consumerCount;
-        App.debug("Entering main loop (prods: " + producersRunning + ", cons: "
-                + consumersRunning + ")");
+        App.debug("Entering main loop...");
         while (producersRunning > 0 || consumersRunning > 0) {
-            App.debug("Selecting channel...");
-            int index = alt.fairSelect(pool.getPreConditions());
+            App.debug("Selecting channel (prods: " + producersRunning + ", cons: "
+                + consumersRunning + ")...");
+            App.debug("preConditions: " + pool.getPreConditionsString());
+            int index = alt.fairSelect(pool.getPreConditions(producersRunning));
             App.debug("Selected channel " + index);
             
             CommunicationChannel chan = pool.get(index);
